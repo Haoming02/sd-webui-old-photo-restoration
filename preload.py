@@ -38,6 +38,20 @@ if not os.path.exists(repo_folder):
         shutil.copy(os.path.join(sync_batchnorm, script), networks)
         shutil.copy(os.path.join(sync_batchnorm, script), models)
 
+incorrect_ln = '    mask *= 255.0\n'
+correct_line = '    mask = (mask * 255.0)\n'
+
+for script in [
+        os.path.join(repo_dir(repo_folder), 'Face_Detection', 'align_warp_back_multiple_dlib.py'),
+        os.path.join(repo_dir(repo_folder), 'Face_Detection', 'align_warp_back_multiple_dlib_HR.py')
+    ]:
+    with open(script, 'r', encoding='utf8') as FILE:
+        data = FILE.readlines()
+        for i in range(len(data)):
+            if data[i] == incorrect_ln:
+                data[i] = correct_line
+    with open(script, 'w') as FILE:
+        FILE.writelines(data)
 
 face_detection_model = os.path.join(repo_dir(repo_folder), 'Face_Detection', 'shape_predictor_68_face_landmarks.dat')
 if not os.path.exists(face_detection_model):
