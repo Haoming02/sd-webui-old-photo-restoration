@@ -63,9 +63,6 @@ def bop(img_path:str, gpu_id:int, scratch:bool, hr:bool):
     results = detect_new_results(final_output, cache)
     return results
 
-def debug():
-    print('This currently does nothing!')
-
 def bop_ui():
     with gr.Blocks() as BOP:
         with gr.Row():
@@ -84,11 +81,22 @@ def bop_ui():
                 img_output = gr.Gallery(label='Output', show_download_button=True)
                 with gr.Row():
                     send_i2i = gr.Button(value='Send to img2img')
-                    send_ipt = gr.Button(value='Send to Inpaint')
+                    send_inp = gr.Button(value='Send to Inpaint')
+                    send_i2e = gr.Button(value='Send to Extras')
 
         run_btn.click(bop, inputs=[img_input, gpu_id, is_scratch, is_hr], outputs=[img_output])
-        send_i2i.click(debug)
-        send_ipt.click(debug)
+
+        send_i2i.click(None, None, None,
+            _js="() => {sendImage2Webui('img2img');}",
+        )
+
+        send_inp.click(None, None, None,
+            _js="() => {sendImage2Webui('inpaint');}",
+        )
+
+        send_i2e.click(None, None, None,
+            _js="() => {sendImage2Webui('extras');}",
+        )
 
     return [(BOP, 'BOP', 'sd-webui-old-photo-restoration')]
 

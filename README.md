@@ -7,8 +7,6 @@
 
 **Important:** Currently only supports webui with virtual environment, not the standalone release with embedded Python
 
-**Important:** Currently the `Send to img2img` and `Send to Inpaint` buttons do nothing
-
 ## How to Use
 After installing this Extension, there will be a new **`BOP`** tab on top. 
 Enter the **absolute path** to a folder containing the input images, then click **Process** to start.
@@ -33,6 +31,6 @@ Delete the following folders:
 - `~webui\outputs\old-photo-restoration`
 
 ## To Do
-- [ ] Implement `Send to img2img` and `Send to Inpaint`
+- [X] Implement `Send to img2img` and `Send to Inpaint`
 - [ ] Directly access the models instead of calling the awful scripts
     > This will also solve the freaking virtual environment issues
