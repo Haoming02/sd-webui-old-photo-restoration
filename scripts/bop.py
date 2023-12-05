@@ -12,6 +12,11 @@ OUTPUT_FOLDER = os.path.join(par(par(scripts.basedir())), 'outputs', 'old-photo-
 
 python = os.path.join(par(sys.executable), 'activate')
 
+if os.path.exists(python):
+    py = [python, '&&', 'python']
+else:
+    py = [str(sys.executable)]
+
 repo_folder = repo_dir('BOP-BtL')
 app = os.path.join(repo_folder, 'run.py')
 
@@ -48,7 +53,8 @@ def bop(img_path:str, gpu_id:int, scratch:bool, hr:bool):
     cache = catch_old_results(final_output)
 
     os.chdir(repo_folder)
-    cmd = [python, '&&', 'python', app, '--GPU', str(gpu_id), '--input_folder', img_path, '--output_folder', process_output]
+
+    cmd = py + [app, '--GPU', str(gpu_id), '--input_folder', img_path, '--output_folder', process_output]
 
     if scratch:
         cmd.append('--with_scratch')
