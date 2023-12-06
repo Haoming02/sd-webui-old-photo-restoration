@@ -4,6 +4,7 @@ from modules import scripts
 from subprocess import run
 import gradio as gr
 import datetime
+import launch
 import sys
 import os
 
@@ -19,6 +20,17 @@ else:
 
 repo_folder = repo_dir('BOP-BtL')
 app = os.path.join(repo_folder, 'run.py')
+
+def force_install_requirements():
+    requirements = os.path.join(repo_folder, 'requirements.txt')
+    with open(requirements, 'r', encoding='utf8') as REQs:
+        packages = REQs.readlines()
+        for package in packages:
+            package = package.strip()
+            if not launch.is_installed(package):
+                launch.run_pip(f"install {package}", f"BOP-BoL Requirement: {package}")
+
+    print('Requirements Installed... Please ReloadUI!')
 
 def catch_old_results(output_folder:str):
     if not os.path.exists(output_folder):
@@ -89,6 +101,9 @@ def bop_ui():
                     send_i2i = gr.Button(value='Send to img2img')
                     send_inp = gr.Button(value='Send to Inpaint')
                     send_i2e = gr.Button(value='Send to Extras')
+
+        install = gr.Button(value="Force Install Requirements")
+        install.click(fn=force_install_requirements)
 
         run_btn.click(bop, inputs=[img_input, gpu_id, is_scratch, is_hr], outputs=[img_output])
 

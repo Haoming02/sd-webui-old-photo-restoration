@@ -38,6 +38,14 @@ if not os.path.exists(repo_folder):
         shutil.copy(os.path.join(sync_batchnorm, script), networks)
         shutil.copy(os.path.join(sync_batchnorm, script), models)
 
+    requirements = os.path.join(repo_folder, 'requirements.txt')
+    with open(requirements, 'r', encoding='utf8') as REQs:
+        packages = REQs.readlines()
+        for package in packages:
+            package = package.strip()
+            if not launch.is_installed(package):
+                launch.run_pip(f"install {package}", f"BOP-BoL Requirement: {package}")
+
 incorrect_ln = '    mask *= 255.0\n'
 correct_line = '    mask = (mask * 255.0)\n'
 
@@ -78,14 +86,5 @@ if not os.path.exists(os.path.join(repo_dir(repo_folder), 'Global', 'checkpoints
     response = requests.get(GLOBAL_CHECKPOINT)
     with zipfile.ZipFile(io.BytesIO(response.content), 'r') as zip_ref:
         zip_ref.extractall(target_dir)
-
-
-requirements = os.path.join(repo_folder, 'requirements.txt')
-with open(requirements, 'r', encoding='utf8') as REQs:
-    packages = REQs.readlines()
-    for package in packages:
-        if not launch.is_installed(package):
-            launch.run_pip(f"install {package}", f"BOP-BoL Requirement: {package}")
-
 
 print('Requirements for Bringing-Old-Photos-Back-to-Life Installed...\n')
