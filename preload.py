@@ -1,4 +1,4 @@
-from modules.launch_utils import git_clone, repo_dir, requirements_met
+from modules.launch_utils import git_clone, repo_dir
 import requests
 import launch
 import shutil
@@ -81,12 +81,11 @@ if not os.path.exists(os.path.join(repo_dir(repo_folder), 'Global', 'checkpoints
 
 
 requirements = os.path.join(repo_folder, 'requirements.txt')
-if not requirements_met(requirements):
-    with open(requirements, 'r', encoding='utf8') as REQs:
-        packages = REQs.readlines()
-        for package in packages:
-            if not launch.is_installed(package):
-                launch.run_pip(f"install {package}", f"BOP-BoL Requirement: {package}")
+with open(requirements, 'r', encoding='utf8') as REQs:
+    packages = REQs.readlines()
+    for package in packages:
+        if not launch.is_installed(package):
+            launch.run_pip(f"install {package}", f"BOP-BoL Requirement: {package}")
 
 
 print('Requirements for Bringing-Old-Photos-Back-to-Life Installed...\n')
