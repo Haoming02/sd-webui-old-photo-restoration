@@ -4,12 +4,13 @@ from modules import scripts
 from subprocess import run
 import gradio as gr
 import datetime
-import launch
 import sys
 import os
 
 par = os.path.dirname
-OUTPUT_FOLDER = os.path.join(par(par(scripts.basedir())), 'outputs', 'old-photo-restoration')
+DEFAULT_OUTPUT_FOLDER = os.path.join(par(par(scripts.basedir())), 'outputs', 'old-photo-restoration')
+if not os.path.exists(DEFAULT_OUTPUT_FOLDER):
+    os.mkdir(DEFAULT_OUTPUT_FOLDER)
 
 python = os.path.join(par(sys.executable), 'activate')
 
@@ -22,6 +23,7 @@ repo_folder = repo_dir('BOP-BtL')
 app = os.path.join(repo_folder, 'run.py')
 
 def force_install_requirements():
+    import launch
     requirements = os.path.join(repo_folder, 'requirements.txt')
     with open(requirements, 'r', encoding='utf8') as REQs:
         packages = REQs.readlines()
@@ -32,37 +34,36 @@ def force_install_requirements():
 
     print('Requirements Installed... Please ReloadUI!')
 
-def catch_old_results(output_folder:str):
-    if not os.path.exists(output_folder):
-        return {}
-    return {f: os.path.getmtime(os.path.join(output_folder, f)) for f in os.listdir(output_folder)}
-
-def detect_new_results(output_folder:str, existing_files:dict):
-    new_files = {f: os.path.getmtime(os.path.join(output_folder, f)) for f in os.listdir(output_folder)}
-    return [os.path.join(output_folder, f) for f, time in new_files.items() if f not in existing_files or existing_files[f] < time]
-
-def bop(img_path:str, gpu_id:int, scratch:bool, hr:bool):
-    if(len(img_path.strip()) < 1):
+def bop(img_path:str, output_path:str, gpu_id:int, scratch:bool, hr:bool):
+    if(len(img_path.strip()) < 1 or len(output_path.strip()) < 1):
         return []
 
     img_path = os.path.abspath(img_path)
+    output_path = os.path.abspath(output_path)
 
     if not os.path.exists(img_path):
-        print('Invalid Path!')
+        print('Invalid Input Path!')
         return []
 
-    if len(os.listdir(img_path)) == 0:
-        print('Empty Path!')
+    if not os.path.exists(output_path):
+        print('Invalid Output Path!')
         return []
 
     if len(img_path.split()) > 1:
-        print('Space Detected in Path!')
+        print('Space Detected in Input Path!')
+        return []
+
+    if len(output_path.split()) > 1:
+        print('Space Detected in Output Path!')
+        return []
+
+    if len(os.listdir(img_path)) == 0:
+        print('Empty Input Path!')
         return []
 
     main_environment = os.getcwd()
-    process_output = os.path.join(OUTPUT_FOLDER, datetime.datetime.now().strftime("%m.%d-%H.%M.%S"))
+    process_output = os.path.join(output_path, datetime.datetime.now().strftime("%m.%d-%H.%M.%S"))
     final_output = os.path.join(process_output, 'final_output')
-    cache = catch_old_results(final_output)
 
     os.chdir(repo_folder)
 
@@ -78,14 +79,15 @@ def bop(img_path:str, gpu_id:int, scratch:bool, hr:bool):
     run(cmd, shell=True)
 
     os.chdir(main_environment)
-    results = detect_new_results(final_output, cache)
+    results = [os.path.join(final_output, F) for F in os.listdir(final_output)]
     return results
 
 def bop_ui():
     with gr.Blocks() as BOP:
         with gr.Row():
             with gr.Column():
-                img_input = gr.Textbox (max_lines=1, label='Input', info='Enter the Absolute Path to the Images', interactive=True)
+                img_input = gr.Textbox(max_lines=1, label='Input', info='Enter the Absolute Path to the Input Folder', interactive=True)
+                img_output = gr.Textbox(value=DEFAULT_OUTPUT_FOLDER, max_lines=1, label='Output', info='Enter the Absolute Path to the Output Folder', interactive=True)
 
                 run_btn = gr.Button(value='Process', variant='primary')
 
@@ -96,7 +98,7 @@ def bop_ui():
                         is_hr = gr.Checkbox(label="High Resolution")
 
             with gr.Column():
-                img_output = gr.Gallery(label='Output', show_download_button=True)
+                results = gr.Gallery(label='Results', show_download_button=True)
                 with gr.Row():
                     send_i2i = gr.Button(value='Send to img2img')
                     send_inp = gr.Button(value='Send to Inpaint')
@@ -105,7 +107,7 @@ def bop_ui():
         install = gr.Button(value="Force Install Requirements")
         install.click(fn=force_install_requirements)
 
-        run_btn.click(bop, inputs=[img_input, gpu_id, is_scratch, is_hr], outputs=[img_output])
+        run_btn.click(bop, inputs=[img_input, img_output, gpu_id, is_scratch, is_hr], outputs=[results])
 
         send_i2i.click(None, None, None,
             _js="() => {sendImage2Webui('img2img');}",
