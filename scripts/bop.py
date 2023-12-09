@@ -15,7 +15,10 @@ if not os.path.exists(DEFAULT_OUTPUT_FOLDER):
 python = os.path.join(par(sys.executable), 'activate')
 
 if os.path.exists(python):
-    py = [python, '&&', 'python']
+    if os.name == 'nt': 
+        py = [python, '&&', 'python'] # Windows
+    else: 
+        py = ['source', python, '&&', 'python'] # Unix
 else:
     py = [str(sys.executable)]
 
