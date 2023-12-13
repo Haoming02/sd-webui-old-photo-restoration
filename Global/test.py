@@ -1,19 +1,19 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
+# Copyright (c) Microsoft Corporation
 
-import os
+import torchvision.transforms as transforms
 from collections import OrderedDict
 from torch.autograd import Variable
-from options.test_options import TestOptions
-from models.models import create_model
-from models.mapping_model import Pix2PixHDModel_Mapping
-import util.util as util
-from PIL import Image
-import torch
 import torchvision.utils as vutils
-import torchvision.transforms as transforms
+from PIL import Image
 import numpy as np
+import torch
 import cv2
+import os
+
+from .options.test_options import TestOptions
+from .models.models import create_model
+from .models.mapping_model import Pix2PixHDModel_Mapping
+from .util import util
 
 def data_transforms(img, method=Image.BILINEAR, scale=False):
 
@@ -56,7 +56,7 @@ def irregular_hole_synthesize(img, mask):
     return hole_img
 
 
-def parameter_set(opt):
+def parameter_set(opt, ckpt_dir):
     ## Default parameters
     opt.serial_batches = True  # no shuffle
     opt.no_flip = True  # no flip
@@ -68,7 +68,7 @@ def parameter_set(opt):
     opt.mapping_n_block = 6
     opt.map_mc = 512
     opt.no_instance = True
-    opt.checkpoints_dir = "./checkpoints/restoration"
+    opt.checkpoints_dir = ckpt_dir
     ##
 
     if opt.Quality_restore:
@@ -92,10 +92,11 @@ def parameter_set(opt):
             opt.name = "mapping_Patch_Attention"
 
 
-if __name__ == "__main__":
+def main(custom_args:list, ckpt_dir:str):
 
-    opt = TestOptions().parse(save=False)
-    parameter_set(opt)
+    opt = TestOptions().parse(custom_args, save=False)
+
+    parameter_set(opt, ckpt_dir)
 
     model = Pix2PixHDModel_Mapping()
 

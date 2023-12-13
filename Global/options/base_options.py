@@ -3,7 +3,7 @@
 
 import argparse
 import os
-from util import util
+from ..util import util
 import torch
 
 
@@ -335,10 +335,14 @@ class BaseOptions:
 
         self.initialized = True
 
-    def parse(self, save=True):
+    def parse(self, custom_args:list, save=False):
+
+        if len(custom_args) == 0:
+            raise SystemError('Manually Pass Arguments!')
+
         if not self.initialized:
             self.initialize()
-        self.opt = self.parser.parse_args()
+        self.opt = self.parser.parse_args(custom_args)
         self.opt.isTrain = self.isTrain  # train or test
 
         str_ids = self.opt.gpu_ids.split(",")
