@@ -1,27 +1,23 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
 
-import torch
-import numpy as np
-import skimage.io as io
-
-# from FaceSDK.face_sdk import FaceDetection
-# from face_sdk import FaceDetection
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 from skimage.transform import SimilarityTransform
+from matplotlib.patches import Rectangle
 from skimage.transform import warp
-from PIL import Image
+import torchvision.utils as vutils
+from skimage import img_as_ubyte
+import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torchvision as tv
-import torchvision.utils as vutils
+import skimage.io as io
+from PIL import Image
+import numpy as np
+import argparse
+import torch
 import time
+import json
+import dlib
 import cv2
 import os
-from skimage import img_as_ubyte
-import json
-import argparse
-import dlib
 
 
 def _standard_face_pts():
@@ -127,25 +123,22 @@ def affine2theta(affine, input_w, input_h, target_w, target_h):
     return theta
 
 
-if __name__ == "__main__":
-
+def detect(custom_args:list):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", type=str, default="/home/jingliao/ziyuwan/celebrities", help="input")
-    parser.add_argument(
-        "--save_url", type=str, default="/home/jingliao/ziyuwan/celebrities_detected_face_reid", help="output"
-    )
-    opts = parser.parse_args()
+    parser.add_argument("--url", type=str, default="", help="input")
+    parser.add_argument("--save_url", type=str, default="", help="output")
+    opts = parser.parse_args(custom_args)
 
     url = opts.url
     save_url = opts.save_url
 
-    ### If the origin url is None, then we don't need to reid the origin image
 
     os.makedirs(url, exist_ok=True)
     os.makedirs(save_url, exist_ok=True)
 
     face_detector = dlib.get_frontal_face_detector()
-    landmark_locator = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+    landmark = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shape_predictor_68_face_landmarks.dat')
+    landmark_locator = dlib.shape_predictor(landmark)
 
     count = 0
 
@@ -181,4 +174,3 @@ if __name__ == "__main__":
 
         if count % 1000 == 0:
             print("%d have finished ..." % (count))
-

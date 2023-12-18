@@ -1,45 +1,45 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
 
-import os
 from collections import OrderedDict
-
-import data
-from options.test_options import TestOptions
-from models.pix2pix_model import Pix2PixModel
-from util.visualizer import Visualizer
 import torchvision.utils as vutils
 import warnings
+import os
+
+from .options.test_options import TestOptions
+from .models.pix2pix_model import Pix2PixModel
+from .util.visualizer import Visualizer
+from .data import create_dataloader
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
-opt = TestOptions().parse()
+def test_face(custom_args:list):
+    opt = TestOptions().parse(custom_args)
 
-dataloader = data.create_dataloader(opt)
+    dataloader = create_dataloader(opt)
 
-model = Pix2PixModel(opt)
-model.eval()
+    model = Pix2PixModel(opt)
+    model.eval()
 
-visualizer = Visualizer(opt)
-
-
-single_save_url = os.path.join(opt.checkpoints_dir, opt.name, opt.results_dir, "each_img")
+    visualizer = Visualizer(opt)
 
 
-if not os.path.exists(single_save_url):
-    os.makedirs(single_save_url)
+    single_save_url = os.path.join(opt.checkpoints_dir, opt.name, opt.results_dir, "each_img")
 
 
-for i, data_i in enumerate(dataloader):
-    if i * opt.batchSize >= opt.how_many:
-        break
+    if not os.path.exists(single_save_url):
+        os.makedirs(single_save_url)
 
-    generated = model(data_i, mode="inference")
 
-    img_path = data_i["path"]
+    for i, data_i in enumerate(dataloader):
+        if i * opt.batchSize >= opt.how_many:
+            break
 
-    for b in range(generated.shape[0]):
-        img_name = os.path.split(img_path[b])[-1]
-        save_img_url = os.path.join(single_save_url, img_name)
+        generated = model(data_i, mode="inference")
 
-        vutils.save_image((generated[b] + 1) / 2, save_img_url)
+        img_path = data_i["path"]
 
+        for b in range(generated.shape[0]):
+            img_name = os.path.split(img_path[b])[-1]
+            save_img_url = os.path.join(single_save_url, img_name)
+
+            vutils.save_image((generated[b] + 1) / 2, save_img_url)

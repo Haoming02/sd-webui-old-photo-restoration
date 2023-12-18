@@ -9,8 +9,10 @@ def find_model_using_name(model_name):
     # Given the option --model [modelname],
     # the file "models/modelname_model.py"
     # will be imported.
-    model_filename = "models." + model_name + "_model"
-    modellib = importlib.import_module(model_filename)
+    assert model_name == 'pix2pix'
+    model_filename = f"{model_name}_model"
+
+    from . import pix2pix_model as modellib
 
     # In the file, the class called ModelNameModel() will
     # be instantiated. It has to be a subclass of torch.nn.Module,
@@ -22,11 +24,10 @@ def find_model_using_name(model_name):
             model = cls
 
     if model is None:
-        print(
+        raise SystemError(
             "In %s.py, there should be a subclass of torch.nn.Module with class name that matches %s in lowercase."
             % (model_filename, target_model_name)
         )
-        exit(0)
 
     return model
 

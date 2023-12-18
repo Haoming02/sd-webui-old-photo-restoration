@@ -1,26 +1,23 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
 
-import torch
-import numpy as np
-import skimage.io as io
-
-# from face_sdk import FaceDetection
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 from skimage.transform import SimilarityTransform
-from skimage.transform import warp
+from matplotlib.patches import Rectangle
+import torchvision.utils as vutils
 from PIL import Image, ImageFilter
+from skimage.transform import warp
+from skimage import img_as_ubyte
+import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torchvision as tv
-import torchvision.utils as vutils
+import skimage.io as io
+import numpy as np
+import argparse
+import torch
 import time
+import json
+import dlib
 import cv2
 import os
-from skimage import img_as_ubyte
-import json
-import argparse
-import dlib
 
 
 def calculate_cdf(histogram):
@@ -344,13 +341,13 @@ def search(face_landmarks):
     return results
 
 
-if __name__ == "__main__":
+def align_warp(custom_args:list):
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--origin_url", type=str, default="./", help="origin images")
     parser.add_argument("--replace_url", type=str, default="./", help="restored faces")
     parser.add_argument("--save_url", type=str, default="./save")
-    opts = parser.parse_args()
+    opts = parser.parse_args(custom_args)
 
     origin_url = opts.origin_url
     replace_url = opts.replace_url
@@ -360,7 +357,8 @@ if __name__ == "__main__":
         os.makedirs(save_url)
 
     face_detector = dlib.get_frontal_face_detector()
-    landmark_locator = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+    landmark = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shape_predictor_68_face_landmarks.dat')
+    landmark_locator = dlib.shape_predictor(landmark)
 
     count = 0
 

@@ -148,7 +148,14 @@ def str2bool(v):
 
 def find_class_in_module(target_cls_name, module):
     target_cls_name = target_cls_name.replace("_", "").lower()
-    clslib = importlib.import_module(module)
+
+    if module == 'models.networks.generator':
+        from ..models.networks import generator as clslib
+    elif module == 'models.networks.encoder':
+        from ..models.networks import encoder as clslib
+    else:
+        raise NotImplementedError(f'Module: {module}')
+
     cls = None
     for name, clsobj in clslib.__dict__.items():
         if name.lower() == target_cls_name:

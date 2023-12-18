@@ -1,17 +1,28 @@
 from Global.test import global_test
 from Global.detection import global_detection
 
+from Face_Detection.detect_all_dlib import detect
+from Face_Detection.detect_all_dlib_HR import detect_hr
+from Face_Detection.align_warp_back_multiple_dlib import align_warp
+from Face_Detection.align_warp_back_multiple_dlib_HR import align_warp_hr
+
+from Face_Enhancement.test_face import test_face
+
 from modules import scripts
 import datetime
 import shutil
 import os
 
 GLOBAL_CHECKPOINTS_FOLDER = os.path.join(scripts.basedir(), 'Global', 'checkpoints', 'restoration')
+FACE_ENHANCEMENT_FOLDER = os.path.join(scripts.basedir(), 'Face_Enhancement')
+FACE_ENHANCEMENT_CHECKPOINTS = ['Setting_9_epoch_100', 'FaceSR_512']
 
 def validate_paths(input_path:str, output_path:str) -> bool:
     if(len(input_path.strip()) < 1 or len(output_path.strip()) < 1):
         print('Empty Path Detected...')
         return False
+
+    assert input_path != output_path
 
     try:
         assert (os.path.isabs(input_path) and os.path.isabs(output_path))
@@ -48,6 +59,7 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
         os.makedirs(final_output)
 
     # ===== Stage 1 =====
+    print("Running Stage 1: Overall restoration")
     stage1_output = os.path.join(output_path, 'stage1')
 
     if not scratch:
@@ -67,23 +79,56 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
         global_test(args, GLOBAL_CHECKPOINTS_FOLDER)
 
     stage1_results = os.path.join(stage1_output, "restored_image")
+    for FILE in os.listdir(stage1_results):
+        shutil.copy(os.path.join(stage1_results, FILE), final_output)
 
     if not face_res:
-        for FILE in os.listdir(stage1_results):
-            shutil.copy(os.path.join(stage1_results, FILE), final_output)
+        print("Processing is done. Please check the results.")
         return final_output
 
-    else:
-        print('Face Restoration is not implemented yet...')
-
     # ===== Stage 2 =====
-        pass
-    # ===== Stage 3 =====
-        pass
-    # ===== Stage 4 =====
-        pass
+    print("Running Stage 2: Face Detection")
+    stage2_output = os.path.join(output_path, 'stage2')
 
-    return stage1_results
+    if hr:
+        detect_hr(['--url', stage1_results, '--save_url', stage2_output])
+    else:
+        detect(['--url', stage1_results, '--save_url', stage2_output])
+
+    # ===== Stage 3 =====
+    print("Running Stage 3: Face Enhancement")
+    stage3_output = os.path.join(output_path, 'stage3')
+
+    if hr:
+        args = [
+            '--old_face_folder', stage2_output, '--old_face_label_folder', FACE_ENHANCEMENT_FOLDER,
+            '--tensorboard_log', '--name', FACE_ENHANCEMENT_CHECKPOINTS[1], '--gpu_ids', str(gpu_id),
+            '--load_size', '512', '--label_nc', '18', '--no_instance', '--preprocess_mode', 'resize',
+            '--batchSize', '1', '--results_dir', stage3_output, '--no_parsing_map'
+        ]
+    else:
+        args = [
+            '--old_face_folder', stage2_output, '--old_face_label_folder', FACE_ENHANCEMENT_FOLDER,
+            '--tensorboard_log', '--name', FACE_ENHANCEMENT_CHECKPOINTS[0], '--gpu_ids', str(gpu_id),
+            '--load_size', '256', '--label_nc', '18', '--no_instance', '--preprocess_mode', 'resize',
+            '--batchSize', '4', '--results_dir', stage3_output, '--no_parsing_map'
+        ]
+
+    test_face(args)
+
+    stage3_results = os.path.join(stage3_output, "each_img")
+
+    # ===== Stage 4 =====
+    print("Running Stage 4: Blending")
+
+    args = ['--origin_url', stage1_results, '--replace_url', stage3_results, '--save_url', final_output]
+    if hr:
+        align_warp_hr(args)
+    else:
+        align_warp(args)
+
+    print("All the processing is done. Please check the results.")
+    return final_output
 
 
 def bop(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr:bool, face_res:bool, del_itr:bool):

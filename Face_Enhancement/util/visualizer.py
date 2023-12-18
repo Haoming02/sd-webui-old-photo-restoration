@@ -8,9 +8,9 @@ from . import util
 import scipy.misc
 
 try:
-    from StringIO import StringIO  # Python 2.7
-except ImportError:
     from io import BytesIO  # Python 3.x
+except ImportError:
+    from StringIO import StringIO  # Python 2.7
 import torchvision.utils as vutils
 from tensorboardX import SummaryWriter
 import torch
@@ -34,7 +34,7 @@ class Visualizer:
                     os.makedirs(self.log_dir)
                 self.writer = SummaryWriter(log_dir=self.log_dir)
             else:
-                print("hi :)")
+                # print("hi :)")
                 self.log_dir = os.path.join(opt.checkpoints_dir, opt.name, opt.results_dir)
                 if not os.path.exists(self.log_dir):
                     os.makedirs(self.log_dir)
