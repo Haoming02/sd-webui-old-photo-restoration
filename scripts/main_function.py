@@ -68,11 +68,12 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
 
     else:
         mask_dir = os.path.join(stage1_output, "masks")
+        new_input = os.path.join(mask_dir, "input")
         new_mask = os.path.join(mask_dir, "mask")
         args = ['--test_path', input_path, '--output_dir', mask_dir, '--input_size', 'full_size', '--GPU', str(gpu_id)]
         global_detection(args)
 
-        args = ['--Scratch_and_Quality_restore', '--test_input', input_path, '--test_mask', new_mask, '--outputs_dir', stage1_output, '--gpu_ids', str(gpu_id)]
+        args = ['--Scratch_and_Quality_restore', '--test_input', new_input, '--test_mask', new_mask, '--outputs_dir', stage1_output, '--gpu_ids', str(gpu_id)]
         if hr:
             args.append('--HR')
 
@@ -97,26 +98,28 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
 
     # ===== Stage 3 =====
     print("Running Stage 3: Face Enhancement")
-    stage3_output = os.path.join(output_path, 'stage3')
+    stage_3_input_mask = FACE_ENHANCEMENT_FOLDER
+    stage_3_input_face = stage2_output
+    stage_3_output_dir = os.path.join(output_path, 'stage3')
 
     if hr:
         args = [
-            '--old_face_folder', stage2_output, '--old_face_label_folder', FACE_ENHANCEMENT_FOLDER,
-            '--tensorboard_log', '--name', FACE_ENHANCEMENT_CHECKPOINTS[1], '--gpu_ids', str(gpu_id),
+            '--old_face_folder', stage_3_input_face, '--old_face_label_folder', stage_3_input_mask,
+            '--name', FACE_ENHANCEMENT_CHECKPOINTS[1], '--gpu_ids', str(gpu_id),
             '--load_size', '512', '--label_nc', '18', '--no_instance', '--preprocess_mode', 'resize',
-            '--batchSize', '1', '--results_dir', stage3_output, '--no_parsing_map'
+            '--batchSize', '1', '--results_dir', stage_3_output_dir, '--no_parsing_map'
         ]
     else:
         args = [
-            '--old_face_folder', stage2_output, '--old_face_label_folder', FACE_ENHANCEMENT_FOLDER,
-            '--tensorboard_log', '--name', FACE_ENHANCEMENT_CHECKPOINTS[0], '--gpu_ids', str(gpu_id),
+            '--old_face_folder', stage_3_input_face, '--old_face_label_folder', stage_3_input_mask,
+            '--name', FACE_ENHANCEMENT_CHECKPOINTS[0], '--gpu_ids', str(gpu_id),
             '--load_size', '256', '--label_nc', '18', '--no_instance', '--preprocess_mode', 'resize',
-            '--batchSize', '4', '--results_dir', stage3_output, '--no_parsing_map'
+            '--batchSize', '4', '--results_dir', stage_3_output_dir, '--no_parsing_map'
         ]
 
     test_face(args)
 
-    stage3_results = os.path.join(stage3_output, "each_img")
+    stage3_results = os.path.join(stage_3_output_dir, "each_img")
 
     # ===== Stage 4 =====
     print("Running Stage 4: Blending")
