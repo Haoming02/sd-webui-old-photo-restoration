@@ -13,7 +13,11 @@ from .data import create_dataloader
 warnings.filterwarnings("ignore", category=UserWarning)
 
 def test_face(custom_args:list):
-    opt = TestOptions().parse(custom_args)
+    import sys
+    cache = sys.argv[1:]
+    sys.argv[1:] = custom_args
+    opt = TestOptions().parse()
+    sys.argv[1:] = cache
 
     dataloader = create_dataloader(opt)
 

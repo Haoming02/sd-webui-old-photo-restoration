@@ -182,14 +182,14 @@ class BaseOptions:
         self.initialized = True
         return parser
 
-    def gather_options(self, custom_args):
+    def gather_options(self):
         # initialize parser with basic options
         if not self.initialized:
             parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
             parser = self.initialize(parser)
 
         # get the basic options
-        opt = parser.parse_args(custom_args)
+        opt, unknown = parser.parse_known_args()
 
         # modify model-related parser options
         model_name = opt.model
@@ -201,14 +201,14 @@ class BaseOptions:
         # dataset_option_setter = data.get_option_setter(dataset_mode)
         # parser = dataset_option_setter(parser, self.isTrain)
 
-        # opt = parser.parse_args(custom_args)
+        opt, unknown = parser.parse_known_args()
 
         # if there is opt_file, load it.
         # The previous default options will be overwritten
         if opt.load_from_opt_file:
             parser = self.update_options_from_file(parser, opt)
 
-        opt = parser.parse_args(custom_args)
+        opt = parser.parse_args()
         self.parser = parser
         return opt
 
@@ -257,12 +257,9 @@ class BaseOptions:
         new_opt = pickle.load(open(file_name + ".pkl", "rb"))
         return new_opt
 
-    def parse(self, custom_args:list, save=False):
+    def parse(self, save=False):
 
-        if len(custom_args) == 0:
-            raise SystemError('Manually Pass Arguments!')
-
-        opt = self.gather_options(custom_args)
+        opt = self.gather_options()
         opt.isTrain = self.isTrain  # train or test
         opt.contain_dontcare_label = False
 
