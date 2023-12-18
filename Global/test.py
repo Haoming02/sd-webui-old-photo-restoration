@@ -92,7 +92,7 @@ def parameter_set(opt, ckpt_dir):
             opt.name = "mapping_Patch_Attention"
 
 
-def main(custom_args:list, ckpt_dir:str):
+def global_test(custom_args:list, ckpt_dir:str):
 
     opt = TestOptions().parse(custom_args, save=False)
 

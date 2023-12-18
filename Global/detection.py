@@ -1,21 +1,19 @@
 # Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
 
-import argparse
-import gc
-import json
-import os
-import time
-import warnings
-
-import numpy as np
-import torch
+from PIL import Image, ImageFile
 import torch.nn.functional as F
 import torchvision as tv
-from PIL import Image, ImageFile
+import numpy as np
+import warnings
+import argparse
+import torch
+import json
+import time
+import gc
+import os
 
-from detection_models import networks
-from detection_util.util import *
+from .detection_models import networks
+from .detection_util.util import mkdir_if_not
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -95,7 +93,7 @@ def main(config):
 
     if config.GPU >= 0:
         model.to(config.GPU)
-    else: 
+    else:
         model.cpu()
     model.eval()
 
@@ -165,14 +163,13 @@ def main(config):
         torch.cuda.empty_cache()
 
 
-if __name__ == "__main__":
+def global_detection(custom_args:list):
     parser = argparse.ArgumentParser()
-    # parser.add_argument('--checkpoint_name', type=str, default="FT_Epoch_latest.pt", help='Checkpoint Name')
 
     parser.add_argument("--GPU", type=int, default=0)
     parser.add_argument("--test_path", type=str, default=".")
     parser.add_argument("--output_dir", type=str, default=".")
     parser.add_argument("--input_size", type=str, default="scale_256", help="resize_256|full_size|scale_256")
-    config = parser.parse_args()
+    config = parser.parse_args(custom_args)
 
     main(config)
