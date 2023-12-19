@@ -14,7 +14,7 @@ import shutil
 import os
 
 GLOBAL_CHECKPOINTS_FOLDER = os.path.join(scripts.basedir(), 'Global', 'checkpoints', 'restoration')
-FACE_ENHANCEMENT_FOLDER = os.path.join(scripts.basedir(), 'Face_Enhancement')
+FACE_CHECKPOINTS_FOLDER = os.path.join(scripts.basedir(), 'Face_Enhancement', 'checkpoints')
 FACE_ENHANCEMENT_CHECKPOINTS = ['Setting_9_epoch_100', 'FaceSR_512']
 
 def validate_paths(input_path:str, output_path:str) -> bool:
@@ -98,20 +98,19 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
 
     # ===== Stage 3 =====
     print("Running Stage 3: Face Enhancement")
-    stage_3_input_mask = FACE_ENHANCEMENT_FOLDER
     stage_3_input_face = stage2_output
     stage_3_output_dir = os.path.join(output_path, 'stage3')
 
     if hr:
         args = [
-            '--old_face_folder', stage_3_input_face, '--old_face_label_folder', stage_3_input_mask,
+            '--checkpoints_dir', FACE_CHECKPOINTS_FOLDER, '--old_face_folder', stage_3_input_face,
             '--name', FACE_ENHANCEMENT_CHECKPOINTS[1], '--gpu_ids', str(gpu_id),
             '--load_size', '512', '--label_nc', '18', '--no_instance', '--preprocess_mode', 'resize',
             '--batchSize', '1', '--results_dir', stage_3_output_dir, '--no_parsing_map'
         ]
     else:
         args = [
-            '--old_face_folder', stage_3_input_face, '--old_face_label_folder', stage_3_input_mask,
+            '--checkpoints_dir', FACE_CHECKPOINTS_FOLDER, '--old_face_folder', stage_3_input_face,
             '--name', FACE_ENHANCEMENT_CHECKPOINTS[0], '--gpu_ids', str(gpu_id),
             '--load_size', '256', '--label_nc', '18', '--no_instance', '--preprocess_mode', 'resize',
             '--batchSize', '4', '--results_dir', stage_3_output_dir, '--no_parsing_map'
