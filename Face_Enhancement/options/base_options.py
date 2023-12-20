@@ -273,7 +273,6 @@ class BaseOptions:
             opt.label_nc + (1 if opt.contain_dontcare_label else 0) + (0 if opt.no_instance else 1)
         )
 
-        # set gpu ids
         str_ids = opt.gpu_ids.split(",")
         opt.gpu_ids = []
         for str_id in str_ids:
@@ -281,14 +280,18 @@ class BaseOptions:
             if int_id >= 0:
                 opt.gpu_ids.append(int_id)
 
-        if len(opt.gpu_ids) > 0:
-            print("The main GPU is ")
-            print(opt.gpu_ids[0])
-            torch.cuda.set_device(opt.gpu_ids[0])
+        # set gpu ids
+        if torch.cuda.is_available() and len(opt.gpu_ids) > 0:
+            if torch.cuda.device_count() > opt.gpu_ids[0]:
+                try:
+                    torch.cuda.set_device(opt.gpu_ids[0])
+                except:
+                    print('Failed to set GPU device. Using CPU...')
 
-        assert (
-            len(opt.gpu_ids) == 0 or opt.batchSize % len(opt.gpu_ids) == 0
-        ), "Batch size %d is wrong. It must be a multiple of # GPUs %d." % (opt.batchSize, len(opt.gpu_ids))
+            else:
+                print('Invalid GPU ID. Using CPU...')
+
+        # assert (len(opt.gpu_ids) == 0 or opt.batchSize % len(opt.gpu_ids) == 0), "Batch size %d is wrong. It must be a multiple of # GPUs %d." % (opt.batchSize, len(opt.gpu_ids))
 
         self.opt = opt
         return self.opt

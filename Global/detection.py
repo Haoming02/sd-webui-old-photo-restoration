@@ -92,9 +92,13 @@ def main(config):
     print("model weights loaded")
 
     if config.GPU >= 0:
-        model.to(config.GPU)
+        try:
+            model.to(config.GPU)
+        except:
+            model.cpu()
     else:
         model.cpu()
+
     model.eval()
 
     ## dataloader and transformation
