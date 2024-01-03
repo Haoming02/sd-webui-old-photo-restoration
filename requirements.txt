@@ -4,7 +4,7 @@ dlib
 scikit-image
 easydict
 PyYAML
-dominate>=2.3.1
+dominate
 dill
 tensorboardX
 scipy
