@@ -143,7 +143,10 @@ def main(config):
         scratch_image_scale = scale_tensor(scratch_image)
 
         if config.GPU >= 0:
-            scratch_image_scale = scratch_image_scale.to(config.GPU)
+            try:
+                scratch_image_scale = scratch_image_scale.to(config.GPU)
+            except:
+                scratch_image_scale = scratch_image_scale.cpu()
         else:
             scratch_image_scale = scratch_image_scale.cpu()
         with torch.no_grad():

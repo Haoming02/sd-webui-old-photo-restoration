@@ -72,7 +72,7 @@ def to_np(x):
 
 
 def prepare_device(use_gpu, gpu_ids):
-    if use_gpu:
+    if torch.cuda.is_available() and use_gpu:
         cudnn.benchmark = True
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         if isinstance(gpu_ids, str):

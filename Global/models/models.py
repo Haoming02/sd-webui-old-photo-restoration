@@ -21,8 +21,8 @@ def create_model(opt):
         print("model [%s] was created" % (model.name()))
 
     if opt.isTrain and len(opt.gpu_ids) > 1:
-        # pass
-        model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
+        pass
+        # model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
 
     return model
 
@@ -34,14 +34,14 @@ def create_da_model(opt):
         else:
             model = InferenceModel()
     else:
-    	from .ui_model import UIModel
-    	model = UIModel()
+        from .ui_model import UIModel
+        model = UIModel()
     model.initialize(opt)
     if opt.verbose:
         print("model [%s] was created" % (model.name()))
 
     if opt.isTrain and len(opt.gpu_ids) > 1:
-        #pass
-        model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
+        pass
+        # model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
 
     return model

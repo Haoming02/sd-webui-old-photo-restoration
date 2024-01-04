@@ -58,6 +58,10 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
     if not os.path.exists(final_output):
         os.makedirs(final_output)
 
+    import torch
+    if not torch.cuda.is_available():
+        gpu_id = -1
+
     # ===== Stage 1 =====
     print("Running Stage 1: Overall restoration")
     stage1_output = os.path.join(output_path, 'stage1')
