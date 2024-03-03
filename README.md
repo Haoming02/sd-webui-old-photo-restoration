@@ -4,31 +4,12 @@ and then send the output into `img2img` or `Inpaint` for further touch-up.
 
 > Original Paper: https://arxiv.org/abs/2004.09484
 
-> Original Repo: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life
+> Original Repo: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life *(includes some example images)*
 
 <p align="center"><img src="sample.jpg"></p>
 
-## How to Use
-After installing this Extension, there will be a new **`BOP`** tab on top. 
-Enter the **absolute path** to a folder containing the input images, then click **Process** to start.
-- The path needs to be an **absolute path** that directly points to the folder, and the path should contain **no spaces**
-- The outputs are saved to `~webui\outputs\old-photo-restoration` (by default)
-- The [original repo](https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life) included some sample images
-
-## Settings
-- **Process Scratch:** Fix and remove the scratches from the images
-- **Face Restore:** Use the pre-trained model to improve the faces
-  - *(This is **not** the same as the built-in ones on the Webui)*
-- **High Resolution:** Use higher parameters to do the processing
-  - *(Only has an effect when either `Process Scratch` or `Face Restore` is also active)*
-- **Delete Intermediate Steps:** Only keep the final results
-- **GPU ID:** Specify the GPU to use. Set to `-1` to use CPU instead.
-
 ## Requirements
-> The Python packages should be installed automatically on the first launch
-
-#### Install
-0. Clone this repo into the `~webui/extensions` folder
+0. Install this extension
 1. Download `global_checkpoints.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
 2. Extract and put the `checkpoints` **folder** *(not just the files)* into `~webui/extensions/sd-webui-old-photo-restoration/Global`
 3. Download `face_checkpoints.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
@@ -36,18 +17,24 @@ Enter the **absolute path** to a folder containing the input images, then click 
 5. Download `shape_predictor_68_face_landmarks.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
 6. Extract the `.dat` **file** into `~webui/extensions/sd-webui-old-photo-restoration/Face_Detection`
 
-> The [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases) page contains the original links, as well as the backup links hosted by myself. 
-Downloading from either one is fine.
+> The [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases) page contains the original links, as well as the backup links mirrored by myself
 
-> The 3. ~ 6. are optional if you don't wish to use **Face Restore**
+## How to Use
+After installing this Extension, there will be a new **BOP** tab at the top
+1. Enter the **absolute path** to a folder containing the input image(s)
+2. Enter the **absolute path** to a folder to store the output image(s)
+3. Adjust the settings as needed
+4. Click **Process** to start
+5. The result image(s) will show up on the right once the processes are finished
 
-#### Uninstall
-Delete the following folders:
-- `~webui\extensions\sd-webui-old-photo-restoration`
-- `~webui\outputs\old-photo-restoration`
+#### Note
+- The path needs to be an **absolute path** with **no spaces**
 
-## Note
-- If you installed the old version before, you can safely delete the following folders:
-    - `~webui\repositories\BOP-BtL`
-    - `~webui\repositories\Synchronized-BatchNorm-PyTorch`
-- The repeated requirements installation is fixed in Webui `v1.7.0`
+## Settings
+- **Process Scratch:** Fix and remove the scratches from the images
+- **Face Restore:** Use the pre-trained model to improve the faces
+  - *(This is **not** the built-in ones from the Webui)*
+- **High Resolution:** Use higher parameters to do the processing
+  - *(Only has an effect when either `Process Scratch` or `Face Restore` is also active)*
+- **Delete Intermediate Steps:** Only keep the final results
+- **GPU ID:** Specify the GPU to use. Set to `-1` to use CPU instead. Forced to `-1` when no CUDA is detected.

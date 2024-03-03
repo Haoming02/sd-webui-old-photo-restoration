@@ -13,41 +13,43 @@ import datetime
 import shutil
 import os
 
+
 GLOBAL_CHECKPOINTS_FOLDER = os.path.join(scripts.basedir(), 'Global', 'checkpoints', 'restoration')
 FACE_CHECKPOINTS_FOLDER = os.path.join(scripts.basedir(), 'Face_Enhancement', 'checkpoints')
 FACE_ENHANCEMENT_CHECKPOINTS = ['Setting_9_epoch_100', 'FaceSR_512']
 
-def validate_paths(input_path:str, output_path:str) -> bool:
-    if(len(input_path.strip()) < 1 or len(output_path.strip()) < 1):
-        print('Empty Path Detected...')
+
+def validate_paths(input_path: str, output_path: str) -> bool:
+    if (not input_path) or (not output_path):
+        print("Empty Path Detected...")
         return False
 
-    assert input_path != output_path
+    if input_path == output_path:
+        print("Bruh...")
+        return False
 
-    try:
-        assert (os.path.isabs(input_path) and os.path.isabs(output_path))
-    except AssertionError:
-        print('Path is not Absolute...')
+    if not (os.path.isabs(input_path) and os.path.isabs(output_path)):
+        print("Path is not Absolute...")
         return False
 
     if not os.path.exists(input_path):
-        print('Input Path does not Exist!')
+        print("Input Path does not Exist!")
         return False
 
     if not os.path.exists(output_path):
-        print('Output Path does not Exist!')
+        print("Output Path does not Exist!")
         return False
 
     if len(input_path.split()) > 1:
-        print('Empty spaces detected in Input Path!')
+        print("Empty spaces detected in Input Path!")
         return False
 
     if len(output_path.split()) > 1:
-        print('Empty spaces detected in Output Path!')
+        print("Empty spaces detected in Output Path!")
         return False
 
     if len(os.listdir(input_path)) == 0:
-        print('No files found in Input Path!')
+        print("No files found in Input Path!")
         return False
 
     return True
@@ -137,26 +139,28 @@ def core_functions(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr
     return final_output
 
 
-def bop(input_path:str, output_path:str, gpu_id:int, scratch:bool, hr:bool, face_res:bool, del_itr:bool):
-    if not validate_paths(input_path, output_path):
+def bop(input_path: str, output_path: str, gpu_id: int, scratch: bool, hr: bool, face_res: bool, del_itr: bool) -> list:
+    if not validate_paths(input_path.strip(), output_path.strip()):
         return []
 
-    output_path = os.path.join(output_path, datetime.datetime.now().strftime("%m-%d %H.%M.%S"))
+    output_path = os.path.join(output_path, datetime.datetime.now().strftime("%m%d-%H.%M.%S"))
 
-    final_output = core_functions(input_path, output_path, gpu_id, scratch, hr, face_res)
+    final_outputs: str = core_functions(input_path, output_path, gpu_id, scratch, hr, face_res)
 
     if not del_itr:
-        results = [os.path.join(final_output, F) for F in os.listdir(final_output)]
+        results = [os.path.join(final_outputs, F) for F in os.listdir(final_outputs)]
         return results
 
     else:
         for PATH in os.listdir(output_path):
-            if 'final_output' not in PATH:
+            if "final_output" not in PATH:
                 shutil.rmtree(os.path.join(output_path, PATH))
 
-        for FILE in os.listdir(final_output):
-            os.rename(os.path.join(final_output, FILE), os.path.join(output_path, FILE))
-        os.rmdir(final_output)
+        for FILE in os.listdir(final_outputs):
+            os.rename(
+                os.path.join(final_outputs, FILE), os.path.join(output_path, FILE)
+            )
+        os.rmdir(final_outputs)
 
         results = [os.path.join(output_path, F) for F in os.listdir(output_path)]
         return results
