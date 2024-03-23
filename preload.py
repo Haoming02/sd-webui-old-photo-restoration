@@ -11,5 +11,5 @@ if not os.path.exists(GLOBAL):
     print('[Warning] global_checkpoints not detected! Please download it from Release!')
 
 MDL = os.path.join(EXTENSION_FOLDER, 'Face_Detection', 'shape_predictor_68_face_landmarks.dat')
-if not os.path.exists(GLOBAL):
+if not os.path.exists(MDL):
     print('[Warning] face_landmarks not detected! Please download it from Release!')

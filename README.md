@@ -1,12 +1,12 @@
 ﻿# SD Webui Old Photo Restoration
-This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui), which allows you to perform **Bringing-Old-Photos-Back-to-Life** from the webui, 
+This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui), which allows you to perform **Bringing-Old-Photos-Back-to-Life** from the webui,
 and then send the output into `img2img` or `Inpaint` for further touch-up.
 
 > Original Paper: https://arxiv.org/abs/2004.09484
 
 > Original Repo: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life *(includes some example images)*
 
-<p align="center"><img src="sample.jpg"></p>
+# W.I.P
 
 ## Requirements
 0. Install this extension
