@@ -1,5 +1,6 @@
-# Copyright (c) Microsoft Corporation.
+# Copyright (c) Microsoft Corporation
 
+import torchvision.transforms as transforms
 from PIL import Image, ImageFile
 import torch.nn.functional as F
 import torchvision as tv
@@ -7,13 +8,13 @@ import numpy as np
 import warnings
 import argparse
 import torch
-import json
-import time
 import gc
 import os
 
 from .detection_models import networks
-from .detection_util.util import mkdir_if_not
+
+
+tensor2image = transforms.ToPILImage()
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -65,11 +66,12 @@ def blend_mask(img, mask):
 
     np_img = np.array(img).astype("float")
 
-    return Image.fromarray((np_img * (1 - mask) + mask * 255.0).astype("uint8")).convert("RGB")
+    return Image.fromarray(
+        (np_img * (1 - mask) + mask * 255.0).astype("uint8")
+    ).convert("RGB")
 
 
-def main(config):
-    print("initializing the dataloader")
+def main(config: argparse.Namespace, input_image: Image):
 
     model = networks.UNet(
         in_channels=1,
@@ -86,97 +88,57 @@ def main(config):
     )
 
     ## load model
-    checkpoint_path = os.path.join(os.path.dirname(__file__), "checkpoints/detection/FT_Epoch_latest.pt")
+    checkpoint_path = os.path.join(
+        os.path.dirname(__file__), "checkpoints/detection/FT_Epoch_latest.pt"
+    )
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
     model.load_state_dict(checkpoint["model_state"])
     print("model weights loaded")
 
-    if config.GPU >= 0:
-        try:
-            model.to(config.GPU)
-        except:
-            model.cpu()
+    if torch.cuda.is_available() and config.GPU >= 0:
+        model.to(config.GPU)
     else:
         model.cpu()
 
     model.eval()
 
-    ## dataloader and transformation
-    print("directory of testing image: " + config.test_path)
-    imagelist = os.listdir(config.test_path)
-    imagelist.sort()
-    total_iter = 0
+    print("processing...")
 
-    P_matrix = {}
-    save_url = os.path.join(config.output_dir)
-    mkdir_if_not(save_url)
+    transformed_image_PIL = data_transforms(input_image, config.input_size)
+    input_image = transformed_image_PIL.convert("L")
+    input_image = tv.transforms.ToTensor()(input_image)
+    input_image = tv.transforms.Normalize([0.5], [0.5])(input_image)
+    input_image = torch.unsqueeze(input_image, 0)
 
-    input_dir = os.path.join(save_url, "input")
-    output_dir = os.path.join(save_url, "mask")
-    # blend_output_dir=os.path.join(save_url, 'blend_output')
-    mkdir_if_not(input_dir)
-    mkdir_if_not(output_dir)
-    # mkdir_if_not(blend_output_dir)
+    _, _, ow, oh = input_image.shape
+    scratch_image_scale = scale_tensor(input_image)
 
-    idx = 0
+    if torch.cuda.is_available() and config.GPU >= 0:
+        scratch_image_scale = scratch_image_scale.to(config.GPU)
+    else:
+        scratch_image_scale = scratch_image_scale.cpu()
 
-    results = []
-    for image_name in imagelist:
+    with torch.no_grad():
+        P = torch.sigmoid(model(scratch_image_scale))
 
-        idx += 1
+    P = P.data.cpu()
+    P = F.interpolate(P, [ow, oh], mode="nearest")
 
-        print("processing", image_name)
+    scratch_mask = torch.clamp((P >= 0.4).float(), 0.0, 1.0) * 255
 
-        scratch_file = os.path.join(config.test_path, image_name)
-        if not os.path.isfile(scratch_file):
-            print("Skipping non-file %s" % image_name)
-            continue
-        scratch_image = Image.open(scratch_file).convert("RGB")
-        w, h = scratch_image.size
-
-        transformed_image_PIL = data_transforms(scratch_image, config.input_size)
-        scratch_image = transformed_image_PIL.convert("L")
-        scratch_image = tv.transforms.ToTensor()(scratch_image)
-        scratch_image = tv.transforms.Normalize([0.5], [0.5])(scratch_image)
-        scratch_image = torch.unsqueeze(scratch_image, 0)
-        _, _, ow, oh = scratch_image.shape
-        scratch_image_scale = scale_tensor(scratch_image)
-
-        if config.GPU >= 0:
-            try:
-                scratch_image_scale = scratch_image_scale.to(config.GPU)
-            except:
-                scratch_image_scale = scratch_image_scale.cpu()
-        else:
-            scratch_image_scale = scratch_image_scale.cpu()
-        with torch.no_grad():
-            P = torch.sigmoid(model(scratch_image_scale))
-
-        P = P.data.cpu()
-        P = F.interpolate(P, [ow, oh], mode="nearest")
-
-        tv.utils.save_image(
-            (P >= 0.4).float(),
-            os.path.join(
-                output_dir,
-                image_name[:-4] + ".png",
-            ),
-            nrow=1,
-            padding=0,
-            normalize=True,
-        )
-        transformed_image_PIL.save(os.path.join(input_dir, image_name[:-4] + ".png"))
-        gc.collect()
-        torch.cuda.empty_cache()
+    gc.collect()
+    torch.cuda.empty_cache()
+    return tensor2image(scratch_mask[0].byte())
 
 
-def global_detection(custom_args:list):
-    parser = argparse.ArgumentParser()
+def global_detection(
+    input_image: Image,
+    gpu: int,
+    input_size: str,
+) -> Image:
 
-    parser.add_argument("--GPU", type=int, default=0)
-    parser.add_argument("--test_path", type=str, default=".")
-    parser.add_argument("--output_dir", type=str, default=".")
-    parser.add_argument("--input_size", type=str, default="scale_256", help="resize_256|full_size|scale_256")
-    config = parser.parse_args(custom_args)
+    config = argparse.Namespace()
+    config.GPU = gpu
+    config.input_size = input_size
 
-    main(config)
+    return main(config, input_image)

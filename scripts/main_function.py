@@ -1,5 +1,5 @@
 from Global.test import global_test
-# from Global.detection import global_detection
+from Global.detection import global_detection
 
 # from Face_Detection.detect_all_dlib import detect
 # from Face_Detection.detect_all_dlib_HR import detect_hr
@@ -44,37 +44,17 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         return global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image)
 
     else:
-        raise NotImplementedError
-        mask_dir = os.path.join(stage1_output, "masks")
-        new_input = os.path.join(mask_dir, "input")
-        new_mask = os.path.join(mask_dir, "mask")
-        args = [
-            "--test_path",
-            input_path,
-            "--output_dir",
-            mask_dir,
-            "--input_size",
-            "full_size",
-            "--GPU",
-            str(gpu_id),
-        ]
-        global_detection(args)
+        mask = global_detection(input_image, GPU_ID, "full_size").convert("RGB")
 
         args = [
             "--Scratch_and_Quality_restore",
-            "--test_input",
-            new_input,
-            "--test_mask",
-            new_mask,
-            "--outputs_dir",
-            stage1_output,
             "--gpu_ids",
-            str(gpu_id),
+            str(GPU_ID),
         ]
         if hr:
             args.append("--HR")
 
-        global_test(args, GLOBAL_CHECKPOINTS_FOLDER)
+        return global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image, mask)
 
     stage1_results = os.path.join(stage1_output, "restored_image")
     for FILE in os.listdir(stage1_results):

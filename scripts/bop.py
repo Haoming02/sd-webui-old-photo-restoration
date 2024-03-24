@@ -36,15 +36,25 @@ class FaceSwapScriptExtras(scripts_postprocessing.ScriptPostprocessing):
         return args
 
     def process_firstpass(self, pp: scripts_postprocessing.PostprocessedImage, **args):
-        enable: bool = args["enable"]
-        is_scratch: bool = args["is_scratch"]
-        face_res: bool = args["face_res"]
-        is_hr: bool = args["is_hr"]
-        del_itr: bool = args["del_itr"]
-        ups_fst: bool = args["ups_fir"]
-        pass
+
+        if args["enable"] and not args["ups_fir"]:
+
+            is_scratch: bool = args["is_scratch"]
+            face_res: bool = args["face_res"]
+            is_hr: bool = args["is_hr"]
+            del_itr: bool = args["del_itr"]
+
+            img = pp.image
+            pp.image = main(img, is_scratch, is_hr, face_res)
 
     def process(self, pp: scripts_postprocessing.PostprocessedImage, **args):
 
-        img = pp.image
-        pp.image = main(img, False, False, False)
+        if args["enable"] and args["ups_fir"]:
+
+            is_scratch: bool = args["is_scratch"]
+            face_res: bool = args["face_res"]
+            is_hr: bool = args["is_hr"]
+            del_itr: bool = args["del_itr"]
+
+            img = pp.image
+            pp.image = main(img, is_scratch, is_hr, face_res)
