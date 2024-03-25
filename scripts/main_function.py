@@ -1,8 +1,8 @@
 from Global.test import global_test
 from Global.detection import global_detection
 
-# from Face_Detection.detect_all_dlib import detect
-# from Face_Detection.detect_all_dlib_HR import detect_hr
+from Face_Detection.detect_all_dlib import detect
+from Face_Detection.detect_all_dlib_HR import detect_hr
 # from Face_Detection.align_warp_back_multiple_dlib import align_warp
 # from Face_Detection.align_warp_back_multiple_dlib_HR import align_warp_hr
 
@@ -42,7 +42,7 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
             str(GPU_ID),
         ]
 
-        return global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image)
+        stage1_output = global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image)
 
     else:
         mask = global_detection(input_image, GPU_ID, "full_size").convert("RGB")
@@ -55,25 +55,28 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         if hr:
             args.append("--HR")
 
-        return global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image, mask)
-
-    stage1_results = os.path.join(stage1_output, "restored_image")
-    for FILE in os.listdir(stage1_results):
-        shutil.copy(os.path.join(stage1_results, FILE), final_output)
+        stage1_output = global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image, mask)
 
     if not face_res:
         print("Processing is done. Please check the results.")
-        return final_output
-    else:
-        raise NotImplementedError
+        return stage1_output
+
     # ===== Stage 2 =====
     print("Running Stage 2: Face Detection")
-    stage2_output = os.path.join(output_path, "stage2")
 
     if hr:
-        detect_hr(["--url", stage1_results, "--save_url", stage2_output])
+        faces = detect_hr(stage1_output)
     else:
-        detect(["--url", stage1_results, "--save_url", stage2_output])
+        faces = detect(stage1_output)
+
+    print(f"Detected {len(faces)} Faces...")
+
+    if len(faces) == 0:
+        print("Skipping face restoration...")
+        print("Processing is done. Please check the results.")
+        return stage1_output
+
+    raise NotImplementedError
 
     # ===== Stage 3 =====
     print("Running Stage 3: Face Enhancement")
