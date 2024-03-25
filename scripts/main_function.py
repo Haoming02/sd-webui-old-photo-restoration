@@ -12,6 +12,7 @@ from modules import scripts
 from PIL import Image
 import datetime
 import shutil
+import torch
 import os
 
 
@@ -23,7 +24,7 @@ FACE_CHECKPOINTS_FOLDER = os.path.join(
 )
 FACE_ENHANCEMENT_CHECKPOINTS = ("Setting_9_epoch_100", "FaceSR_512")
 
-GPU_ID = -1
+GPU_ID = 0 if torch.cuda.is_available() else -1
 
 
 def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
