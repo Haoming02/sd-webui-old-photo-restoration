@@ -1,12 +1,15 @@
 ﻿# SD Webui Old Photo Restoration
-This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui), which allows you to perform **Bringing-Old-Photos-Back-to-Life** from the webui,
-and then send the output into `img2img` or `Inpaint` for further touch-up.
+This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui), which allows you to perform **Bringing-Old-Photos-Back-to-Life** natively.
+
+> Compatible with [Forge](https://github.com/lllyasviel/stable-diffusion-webui-forge)
+
+<p align="center">
+<img src="UI.png">
+</p>
 
 > Original Paper: https://arxiv.org/abs/2004.09484
 
 > Original Repo: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life *(includes some example images)*
-
-# W.I.P
 
 ## Requirements
 0. Install this extension
@@ -17,24 +20,22 @@ and then send the output into `img2img` or `Inpaint` for further touch-up.
 5. Download `shape_predictor_68_face_landmarks.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
 6. Extract the `.dat` **file** into `~webui/extensions/sd-webui-old-photo-restoration/Face_Detection`
 
-> The [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases) page contains the original links, as well as the backup links mirrored by myself
+> The [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases) page includes the original links, as well as the backups mirrored by myself
+
+> Another mirror: [Google Drive](https://drive.google.com/drive/folders/1CXAgAYQzz_JkMmxqcabvgGhG_msyMkyS)
 
 ## How to Use
-After installing this Extension, there will be a new **BOP** tab at the top
-1. Enter the **absolute path** to a folder containing the input image(s)
-2. Enter the **absolute path** to a folder to store the output image(s)
-3. Adjust the settings as needed
-4. Click **Process** to start
-5. The result image(s) will show up on the right once the processes are finished
-
-#### Note
-- The path needs to be an **absolute path** with **no spaces**
+After installing this Extension, there will be a new **Old Photo Restoration** section in the **Extras** tab
+0. Expand the dropdown to enable the features
+1. Upload the image(s) to be processed
+2. Adjust the settings as needed
+3. Click **Generate**
+4. The result(s) will show up on the right once the process finishes
 
 ## Settings
-- **Process Scratch:** Fix and remove the scratches from the images
-- **Face Restore:** Use the pre-trained model to improve the faces
-  - *(This is **not** the built-in ones from the Webui)*
+- **Processing Order:** Choose between upscaling the image first or perform the restoration first
+- **Process Scratch:** Remove scratches from the image
+- **Face Restore:** Use a pre-trained model to improve the faces
+  - *(This is **different** from the Webui built-in ones)*
 - **High Resolution:** Use higher parameters to do the processing
-  - *(Only has an effect when either `Process Scratch` or `Face Restore` is also active)*
-- **Delete Intermediate Steps:** Only keep the final results
-- **GPU ID:** Specify the GPU to use. Set to `-1` to use CPU instead. Forced to `-1` when no CUDA is detected.
+  - *(Only has an effect when either `Process Scratch` or `Face Restore` is also enabled)*

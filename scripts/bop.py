@@ -1,9 +1,10 @@
-from scripts.main_function import main
 from modules import scripts_postprocessing, ui_components
 import gradio as gr
 
+from scripts.main_function import main
 
-class FaceSwapScriptExtras(scripts_postprocessing.ScriptPostprocessing):
+
+class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
     name = "BOP"
     order = 200409484
 
@@ -12,49 +13,45 @@ class FaceSwapScriptExtras(scripts_postprocessing.ScriptPostprocessing):
             False, label="Old Photo Restoration"
         ) as enable:
 
-            with gr.Row():
-                is_scratch = gr.Checkbox(label="Process Scratch")
-                face_res = gr.Checkbox(label="Face Restore")
-                is_hr = gr.Checkbox(label="High Resolution")
+            proc_order = gr.Radio(
+                ["Restoration First", "Upscale First"],
+                label="Processing Order",
+                value="Restoration First",
+            )
 
             with gr.Row():
-                del_itr = gr.Checkbox(label="Delete Intermediate Steps")
-                ups_fst = gr.Checkbox(label="Upscale before Restoration")
-                gr.Markdown(
-                    '<p><a style="color: cyan; text-decoration: underline;" href="https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life#1-full-pipeline">[Doc]</a></p>'
-                )
+                do_scratch = gr.Checkbox(label="Process Scratch")
+                do_face_res = gr.Checkbox(label="Face Restore")
+                is_hr = gr.Checkbox(label="High Resolution")
 
         args = {
             "enable": enable,
-            "is_scratch": is_scratch,
-            "face_res": face_res,
+            "proc_order": proc_order,
+            "do_scratch": do_scratch,
+            "do_face_res": do_face_res,
             "is_hr": is_hr,
-            "del_itr": del_itr,
-            "ups_fir": ups_fst,
         }
 
         return args
 
     def process_firstpass(self, pp: scripts_postprocessing.PostprocessedImage, **args):
 
-        if args["enable"] and not args["ups_fir"]:
+        if args["enable"] and args["proc_order"] == "Restoration First":
 
-            is_scratch: bool = args["is_scratch"]
-            face_res: bool = args["face_res"]
+            do_scratch: bool = args["do_scratch"]
+            do_face_res: bool = args["do_face_res"]
             is_hr: bool = args["is_hr"]
-            del_itr: bool = args["del_itr"]
 
             img = pp.image
-            pp.image = main(img, is_scratch, is_hr, face_res)
+            pp.image = main(img, do_scratch, is_hr, do_face_res)
 
     def process(self, pp: scripts_postprocessing.PostprocessedImage, **args):
 
-        if args["enable"] and args["ups_fir"]:
+        if args["enable"] and args["proc_order"] == "Upscale First":
 
-            is_scratch: bool = args["is_scratch"]
-            face_res: bool = args["face_res"]
+            do_scratch: bool = args["do_scratch"]
+            do_face_res: bool = args["do_face_res"]
             is_hr: bool = args["is_hr"]
-            del_itr: bool = args["del_itr"]
 
             img = pp.image
-            pp.image = main(img, is_scratch, is_hr, face_res)
+            pp.image = main(img, do_scratch, is_hr, do_face_res)

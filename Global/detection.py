@@ -128,7 +128,7 @@ def main(config: argparse.Namespace, input_image: Image):
 
     gc.collect()
     torch.cuda.empty_cache()
-    return tensor2image(scratch_mask[0].byte())
+    return tensor2image(scratch_mask[0].byte()), transformed_image_PIL
 
 
 def global_detection(

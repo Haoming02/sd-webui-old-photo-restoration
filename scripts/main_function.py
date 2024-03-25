@@ -10,8 +10,6 @@ from Face_Enhancement.test_face import test_face
 
 from modules import scripts
 from PIL import Image
-import datetime
-import shutil
 import torch
 import os
 
@@ -29,10 +27,9 @@ GPU_ID = 0 if torch.cuda.is_available() else -1
 
 def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
     input_image = input_image.convert("RGB")
-    # outpath = opts.outdir_samples or opts.outdir_extras_samples
 
     # ===== Stage 1 =====
-    print("Running Stage 1: Overall restoration")
+    print("\nRunning Stage 1: Overall restoration")
     if not scratch:
         args = [
             "--test_mode",
@@ -45,24 +42,30 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         stage1_output = global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image)
 
     else:
-        mask = global_detection(input_image, GPU_ID, "full_size").convert("RGB")
+        mask, transformed_image = global_detection(input_image, GPU_ID, "full_size")
 
         args = [
             "--Scratch_and_Quality_restore",
             "--gpu_ids",
             str(GPU_ID),
         ]
+
         if hr:
             args.append("--HR")
 
-        stage1_output = global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image, mask)
+        stage1_output = global_test(
+            GLOBAL_CHECKPOINTS_FOLDER,
+            args,
+            transformed_image.convert("RGB"),
+            mask.convert("RGB"),
+        )
 
     if not face_res:
         print("Processing is done. Please check the results.")
         return stage1_output
 
     # ===== Stage 2 =====
-    print("Running Stage 2: Face Detection")
+    print("\nRunning Stage 2: Face Detection")
 
     if hr:
         faces = detect_hr(stage1_output)
@@ -77,7 +80,7 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         return stage1_output
 
     # ===== Stage 3 =====
-    print("Running Stage 3: Face Enhancement")
+    print("\nRunning Stage 3: Face Enhancement")
 
     if hr:
         args = {
@@ -108,7 +111,7 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
     restored_faces = test_face(faces, args)
 
     # ===== Stage 4 =====
-    print("Running Stage 4: Blending")
+    print("\nRunning Stage 4: Blending")
 
     if hr:
         final_output = align_warp_hr(stage1_output, restored_faces)

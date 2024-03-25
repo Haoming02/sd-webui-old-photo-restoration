@@ -105,9 +105,7 @@ class Mapping_Model_with_mask_2(nn.Module):  ## Multi-Scale Patch Attention
                 )
             ]
 
-        print(
-            "Mapping: You are using multi-scale patch attention, conv combine + mask input"
-        )
+        print("using multi-scale patch attention, conv combine + mask input...")
 
         self.before_NL = nn.Sequential(*model)
 

@@ -4,7 +4,7 @@ import os
 EXTENSION_FOLDER = os.path.dirname(os.path.realpath(__file__))
 requirements = os.path.join(EXTENSION_FOLDER, "requirements.txt")
 
-with open(requirements, "r", encoding="utf8") as REQs:
+with open(requirements, "r", encoding="utf-8") as REQs:
     packages = REQs.readlines()
 
     for package in packages:
