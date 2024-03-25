@@ -3,8 +3,8 @@ from Global.detection import global_detection
 
 from Face_Detection.detect_all_dlib import detect
 from Face_Detection.detect_all_dlib_HR import detect_hr
-# from Face_Detection.align_warp_back_multiple_dlib import align_warp
-# from Face_Detection.align_warp_back_multiple_dlib_HR import align_warp_hr
+from Face_Detection.align_warp_back_multiple_dlib import align_warp
+from Face_Detection.align_warp_back_multiple_dlib_HR import align_warp_hr
 
 from Face_Enhancement.test_face import test_face
 
@@ -106,23 +106,14 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         }
 
     restored_faces = test_face(faces, args)
-    return restored_faces[0]
 
     # ===== Stage 4 =====
     print("Running Stage 4: Blending")
 
-    args = [
-        "--origin_url",
-        stage1_results,
-        "--replace_url",
-        stage3_results,
-        "--save_url",
-        final_output,
-    ]
     if hr:
-        align_warp_hr(args)
+        final_output = align_warp_hr(stage1_output, restored_faces)
     else:
-        align_warp(args)
+        final_output = align_warp(stage1_output, restored_faces)
 
     print("All the processing is done. Please check the results.")
     return final_output
