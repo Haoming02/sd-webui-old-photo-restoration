@@ -25,7 +25,8 @@ This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1
 > Another mirror: [Google Drive](https://drive.google.com/drive/folders/1CXAgAYQzz_JkMmxqcabvgGhG_msyMkyS)
 
 ## How to Use
-After installing this Extension, there will be a new **Old Photo Restoration** section in the **Extras** tab
+After installing this Extension, there will be an **Old Photo Restoration** section in the **Extras** tab
+
 0. Expand the dropdown to enable the features
 1. Upload the image(s) to be processed
 2. Adjust the settings as needed
