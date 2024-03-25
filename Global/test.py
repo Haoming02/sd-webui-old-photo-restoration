@@ -1,19 +1,17 @@
 # Copyright (c) Microsoft Corporation
 
 import torchvision.transforms as transforms
-from collections import OrderedDict
-from torch.autograd import Variable
-import torchvision.utils as vutils
 from PIL import Image
 import numpy as np
 import torch
 import cv2
 import os
 
-from .options.test_options import TestOptions
-from .models.models import create_model
 from .models.mapping_model import Pix2PixHDModel_Mapping
-from .util import util
+from .options.test_options import TestOptions
+
+tensor2image = transforms.ToPILImage()
+
 
 def data_transforms(img, method=Image.BILINEAR, scale=False):
 
@@ -69,7 +67,6 @@ def parameter_set(opt, ckpt_dir):
     opt.map_mc = 512
     opt.no_instance = True
     opt.checkpoints_dir = ckpt_dir
-    ##
 
     if opt.Quality_restore:
         opt.name = "mapping_quality"
@@ -92,9 +89,11 @@ def parameter_set(opt, ckpt_dir):
             opt.name = "mapping_Patch_Attention"
 
 
-def global_test(custom_args:list, ckpt_dir:str):
+def global_test(
+    ckpt_dir: str, custom_args: list, input_image: Image, mask: Image = None
+) -> Image:
 
-    opt = TestOptions().parse(custom_args, save=False)
+    opt = TestOptions().parse(custom_args)
 
     parameter_set(opt, ckpt_dir)
 
@@ -103,91 +102,41 @@ def global_test(custom_args:list, ckpt_dir:str):
     model.initialize(opt)
     model.eval()
 
-    if not os.path.exists(opt.outputs_dir + "/" + "input_image"):
-        os.makedirs(opt.outputs_dir + "/" + "input_image")
-    if not os.path.exists(opt.outputs_dir + "/" + "restored_image"):
-        os.makedirs(opt.outputs_dir + "/" + "restored_image")
-    if not os.path.exists(opt.outputs_dir + "/" + "origin"):
-        os.makedirs(opt.outputs_dir + "/" + "origin")
-
-    dataset_size = 0
-
-    input_loader = os.listdir(opt.test_input)
-    dataset_size = len(input_loader)
-    input_loader.sort()
-
-    if opt.test_mask != "":
-        mask_loader = os.listdir(opt.test_mask)
-        dataset_size = len(os.listdir(opt.test_mask))
-        mask_loader.sort()
-
     img_transform = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     )
     mask_transform = transforms.ToTensor()
 
-    for i in range(dataset_size):
+    print("processing...")
 
-        input_name = input_loader[i]
-        input_file = os.path.join(opt.test_input, input_name)
-        if not os.path.isfile(input_file):
-            print("Skipping non-file %s" % input_name)
-            continue
-        input = Image.open(input_file).convert("RGB")
+    if opt.NL_use_mask:
+        if opt.mask_dilation != 0:
+            kernel = np.ones((3, 3), np.uint8)
+            mask = np.array(mask)
+            mask = cv2.dilate(mask, kernel, iterations=opt.mask_dilation)
+            mask = Image.fromarray(mask.astype("uint8"))
 
-        print("Now you are processing %s" % (input_name))
+        input_image = irregular_hole_synthesize(input_image, mask)
+        mask = mask_transform(mask)
+        mask = mask[:1, :, :]  ## Convert to single channel
+        mask = mask.unsqueeze(0)
+        input_image = img_transform(input_image)
+        input_image = input_image.unsqueeze(0)
 
-        if opt.NL_use_mask:
-            mask_name = mask_loader[i]
-            mask = Image.open(os.path.join(opt.test_mask, mask_name)).convert("RGB")
-            if opt.mask_dilation != 0:
-                kernel = np.ones((3,3),np.uint8)
-                mask = np.array(mask)
-                mask = cv2.dilate(mask,kernel,iterations = opt.mask_dilation)
-                mask = Image.fromarray(mask.astype('uint8'))
-            origin = input
-            input = irregular_hole_synthesize(input, mask)
-            mask = mask_transform(mask)
-            mask = mask[:1, :, :]  ## Convert to single channel
-            mask = mask.unsqueeze(0)
-            input = img_transform(input)
-            input = input.unsqueeze(0)
-        else:
-            if opt.test_mode == "Scale":
-                input = data_transforms(input, scale=True)
-            if opt.test_mode == "Full":
-                input = data_transforms(input, scale=False)
-            if opt.test_mode == "Crop":
-                input = data_transforms_rgb_old(input)
-            origin = input
-            input = img_transform(input)
-            input = input.unsqueeze(0)
-            mask = torch.zeros_like(input)
-        ### Necessary input
+    else:
+        if opt.test_mode == "Scale":
+            input_image = data_transforms(input_image, scale=True)
+        elif opt.test_mode == "Full":
+            input_image = data_transforms(input_image, scale=False)
+        elif opt.test_mode == "Crop":
+            input_image = data_transforms_rgb_old(input_image)
 
-        try:
-            with torch.no_grad():
-                generated = model.inference(input, mask)
-        except Exception as ex:
-            print("Skip %s due to an error:\n%s" % (input_name, str(ex)))
-            continue
+        input_image = img_transform(input_image)
+        input_image = input_image.unsqueeze(0)
+        mask = torch.zeros_like(input_image)
 
-        if input_name.endswith(".jpg"):
-            input_name = input_name[:-4] + ".png"
+    with torch.no_grad():
+        generated = model.inference(input_image, mask)
 
-        image_grid = vutils.save_image(
-            (input + 1.0) / 2.0,
-            opt.outputs_dir + "/input_image/" + input_name,
-            nrow=1,
-            padding=0,
-            normalize=True,
-        )
-        image_grid = vutils.save_image(
-            (generated.data.cpu() + 1.0) / 2.0,
-            opt.outputs_dir + "/restored_image/" + input_name,
-            nrow=1,
-            padding=0,
-            normalize=True,
-        )
-
-        origin.save(opt.outputs_dir + "/origin/" + input_name)
+    restored = torch.clamp((generated.data.cpu() + 1.0) / 2.0, 0.0, 1.0) * 255
+    return tensor2image(restored[0].byte())

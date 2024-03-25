@@ -1,22 +1,19 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
+# Copyright (c) Microsoft Corporation
 
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import os
-import functools
-from torch.autograd import Variable
+from .NonLocal_feature_mapping_model import *
 from ..util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
-import math
-from .NonLocal_feature_mapping_model import *
+
+from torch.autograd import Variable
+import torch.nn as nn
+import torch
 
 
 class Mapping_Model(nn.Module):
-    def __init__(self, nc, mc=64, n_blocks=3, norm="instance", padding_type="reflect", opt=None):
+    def __init__(
+        self, nc, mc=64, n_blocks=3, norm="instance", padding_type="reflect", opt=None
+    ):
         super(Mapping_Model, self).__init__()
 
         norm_layer = networks.get_norm_layer(norm_type=norm)
@@ -25,10 +22,10 @@ class Mapping_Model(nn.Module):
         tmp_nc = 64
         n_up = 4
 
-        print("Mapping: You are using the mapping model without global restoration.")
+        # print("Mapping: You are using the mapping model without global restoration.")
 
         for i in range(n_up):
-            ic = min(tmp_nc * (2 ** i), mc)
+            ic = min(tmp_nc * (2**i), mc)
             oc = min(tmp_nc * (2 ** (i + 1)), mc)
             model += [nn.Conv2d(ic, oc, 3, 1, 1), norm_layer(oc), activation]
         for i in range(n_blocks):
@@ -49,7 +46,11 @@ class Mapping_Model(nn.Module):
             model += [nn.Conv2d(ic, oc, 3, 1, 1), norm_layer(oc), activation]
         model += [nn.Conv2d(tmp_nc * 2, tmp_nc, 3, 1, 1)]
         if opt.feat_dim > 0 and opt.feat_dim < 64:
-            model += [norm_layer(tmp_nc), activation, nn.Conv2d(tmp_nc, opt.feat_dim, 1, 1)]
+            model += [
+                norm_layer(tmp_nc),
+                activation,
+                nn.Conv2d(tmp_nc, opt.feat_dim, 1, 1),
+            ]
         # model += [nn.Conv2d(64, 1, 1, 1, 0)]
         self.model = nn.Sequential(*model)
 
@@ -61,14 +62,44 @@ class Pix2PixHDModel_Mapping(BaseModel):
     def name(self):
         return "Pix2PixHDModel_Mapping"
 
-    def init_loss_filter(self, use_gan_feat_loss, use_vgg_loss, use_smooth_l1, stage_1_feat_l2):
-        flags = (True, True, use_gan_feat_loss, use_vgg_loss, True, True, use_smooth_l1, stage_1_feat_l2)
+    def init_loss_filter(
+        self, use_gan_feat_loss, use_vgg_loss, use_smooth_l1, stage_1_feat_l2
+    ):
+        flags = (
+            True,
+            True,
+            use_gan_feat_loss,
+            use_vgg_loss,
+            True,
+            True,
+            use_smooth_l1,
+            stage_1_feat_l2,
+        )
 
-        def loss_filter(g_feat_l2, g_gan, g_gan_feat, g_vgg, d_real, d_fake, smooth_l1, stage_1_feat_l2):
+        def loss_filter(
+            g_feat_l2,
+            g_gan,
+            g_gan_feat,
+            g_vgg,
+            d_real,
+            d_fake,
+            smooth_l1,
+            stage_1_feat_l2,
+        ):
             return [
                 l
                 for (l, f) in zip(
-                    (g_feat_l2, g_gan, g_gan_feat, g_vgg, d_real, d_fake, smooth_l1, stage_1_feat_l2), flags
+                    (
+                        g_feat_l2,
+                        g_gan,
+                        g_gan_feat,
+                        g_vgg,
+                        d_real,
+                        d_fake,
+                        smooth_l1,
+                        stage_1_feat_l2,
+                    ),
+                    flags,
                 )
                 if f
             ]
@@ -105,23 +136,23 @@ class Pix2PixHDModel_Mapping(BaseModel):
         )
 
         if opt.non_local == "Setting_42" or opt.NL_use_mask:
-            if opt.mapping_exp==1:
+            if opt.mapping_exp == 1:
                 self.mapping_net = Mapping_Model_with_mask_2(
-                    min(opt.ngf * 2 ** opt.n_downsample_global, opt.mc),
+                    min(opt.ngf * 2**opt.n_downsample_global, opt.mc),
                     opt.map_mc,
                     n_blocks=opt.mapping_n_block,
                     opt=opt,
                 )
             else:
                 self.mapping_net = Mapping_Model_with_mask(
-                    min(opt.ngf * 2 ** opt.n_downsample_global, opt.mc),
+                    min(opt.ngf * 2**opt.n_downsample_global, opt.mc),
                     opt.map_mc,
                     n_blocks=opt.mapping_n_block,
                     opt=opt,
                 )
         else:
             self.mapping_net = Mapping_Model(
-                min(opt.ngf * 2 ** opt.n_downsample_global, opt.mc),
+                min(opt.ngf * 2**opt.n_downsample_global, opt.mc),
                 opt.map_mc,
                 n_blocks=opt.mapping_n_block,
                 opt=opt,
@@ -130,12 +161,18 @@ class Pix2PixHDModel_Mapping(BaseModel):
         self.mapping_net.apply(networks.weights_init)
 
         if opt.load_pretrain != "":
-            self.load_network(self.mapping_net, "mapping_net", opt.which_epoch, opt.load_pretrain)
+            self.load_network(
+                self.mapping_net, "mapping_net", opt.which_epoch, opt.load_pretrain
+            )
 
         if not opt.no_load_VAE:
 
-            self.load_network(self.netG_A, "G", opt.use_vae_which_epoch, opt.load_pretrainA)
-            self.load_network(self.netG_B, "G", opt.use_vae_which_epoch, opt.load_pretrainB)
+            self.load_network(
+                self.netG_A, "G", opt.use_vae_which_epoch, opt.load_pretrainA
+            )
+            self.load_network(
+                self.netG_B, "G", opt.use_vae_which_epoch, opt.load_pretrainB
+            )
             for param in self.netG_A.parameters():
                 param.requires_grad = False
             for param in self.netG_B.parameters():
@@ -158,8 +195,17 @@ class Pix2PixHDModel_Mapping(BaseModel):
             if not opt.no_instance:
                 netD_input_nc += 1
 
-            self.netD = networks.define_D(netD_input_nc, opt.ndf, opt.n_layers_D, opt, opt.norm, use_sigmoid,
-                                              opt.num_D, not opt.no_ganFeat_loss, gpu_ids=self.gpu_ids)
+            self.netD = networks.define_D(
+                netD_input_nc,
+                opt.ndf,
+                opt.n_layers_D,
+                opt,
+                opt.norm,
+                use_sigmoid,
+                opt.num_D,
+                not opt.no_ganFeat_loss,
+                gpu_ids=self.gpu_ids,
+            )
 
         # set loss functions and optimizers
         if self.isTrain:
@@ -169,42 +215,58 @@ class Pix2PixHDModel_Mapping(BaseModel):
             self.old_lr = opt.lr
 
             # define loss functions
-            self.loss_filter = self.init_loss_filter(not opt.no_ganFeat_loss, not opt.no_vgg_loss, opt.Smooth_L1, opt.use_two_stage_mapping)
+            self.loss_filter = self.init_loss_filter(
+                not opt.no_ganFeat_loss,
+                not opt.no_vgg_loss,
+                opt.Smooth_L1,
+                opt.use_two_stage_mapping,
+            )
 
-            self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
-
+            self.criterionGAN = networks.GANLoss(
+                use_lsgan=not opt.no_lsgan, tensor=self.Tensor
+            )
 
             self.criterionFeat = torch.nn.L1Loss()
-            self.criterionFeat_feat = torch.nn.L1Loss() if opt.use_l1_feat else torch.nn.MSELoss()
+            self.criterionFeat_feat = (
+                torch.nn.L1Loss() if opt.use_l1_feat else torch.nn.MSELoss()
+            )
 
             if self.opt.image_L1:
-                self.criterionImage=torch.nn.L1Loss()
+                self.criterionImage = torch.nn.L1Loss()
             else:
                 self.criterionImage = torch.nn.SmoothL1Loss()
-
 
             print(self.criterionFeat_feat)
             if not opt.no_vgg_loss:
                 self.criterionVGG = networks.VGGLoss_torch(self.gpu_ids)
 
-
             # Names so we can breakout loss
-            self.loss_names = self.loss_filter('G_Feat_L2', 'G_GAN', 'G_GAN_Feat', 'G_VGG','D_real', 'D_fake', 'Smooth_L1', 'G_Feat_L2_Stage_1')
+            self.loss_names = self.loss_filter(
+                "G_Feat_L2",
+                "G_GAN",
+                "G_GAN_Feat",
+                "G_VGG",
+                "D_real",
+                "D_fake",
+                "Smooth_L1",
+                "G_Feat_L2_Stage_1",
+            )
 
             # initialize optimizers
             # optimizer G
 
             if opt.no_TTUR:
-                beta1,beta2=opt.beta1,0.999
-                G_lr,D_lr=opt.lr,opt.lr
+                beta1, beta2 = opt.beta1, 0.999
+                G_lr, D_lr = opt.lr, opt.lr
             else:
-                beta1,beta2=0,0.9
-                G_lr,D_lr=opt.lr/2,opt.lr*2
-
+                beta1, beta2 = 0, 0.9
+                G_lr, D_lr = opt.lr / 2, opt.lr * 2
 
             if not opt.no_load_VAE:
                 params = list(self.mapping_net.parameters())
-                self.optimizer_mapping = torch.optim.Adam(params, lr=G_lr, betas=(beta1, beta2))
+                self.optimizer_mapping = torch.optim.Adam(
+                    params, lr=G_lr, betas=(beta1, beta2)
+                )
 
             # optimizer D
             params = list(self.netD.parameters())
@@ -212,7 +274,9 @@ class Pix2PixHDModel_Mapping(BaseModel):
 
             print("---------- Optimizers initialized -------------")
 
-    def encode_input(self, label_map, inst_map=None, real_image=None, feat_map=None, infer=False):
+    def encode_input(
+        self, label_map, inst_map=None, real_image=None, feat_map=None, infer=False
+    ):
         if self.opt.label_nc == 0:
             input_label = label_map.data.cuda()
         else:
@@ -245,33 +309,48 @@ class Pix2PixHDModel_Mapping(BaseModel):
         else:
             return self.netD.forward(input_concat)
 
-    def forward(self, label, inst, image, feat, pair=True, infer=False, last_label=None, last_image=None):
+    def forward(
+        self,
+        label,
+        inst,
+        image,
+        feat,
+        pair=True,
+        infer=False,
+        last_label=None,
+        last_image=None,
+    ):
         # Encode Inputs
-        input_label, inst_map, real_image, feat_map = self.encode_input(label, inst, image, feat)
+        input_label, inst_map, real_image, feat_map = self.encode_input(
+            label, inst, image, feat
+        )
 
         # Fake Generation
         input_concat = input_label
 
-        label_feat = self.netG_A.forward(input_concat, flow='enc')
+        label_feat = self.netG_A.forward(input_concat, flow="enc")
         # print('label:')
         # print(label_feat.min(), label_feat.max(), label_feat.mean())
-        #label_feat = label_feat / 16.0
+        # label_feat = label_feat / 16.0
 
         if self.opt.NL_use_mask:
-            label_feat_map=self.mapping_net(label_feat.detach(),inst)
+            label_feat_map = self.mapping_net(label_feat.detach(), inst)
         else:
             label_feat_map = self.mapping_net(label_feat.detach())
 
-        fake_image = self.netG_B.forward(label_feat_map, flow='dec')
-        image_feat = self.netG_B.forward(real_image, flow='enc')
+        fake_image = self.netG_B.forward(label_feat_map, flow="dec")
+        image_feat = self.netG_B.forward(real_image, flow="enc")
 
-        loss_feat_l2_stage_1=0
-        loss_feat_l2 = self.criterionFeat_feat(label_feat_map, image_feat.data) * self.opt.l2_feat
-
+        loss_feat_l2_stage_1 = 0
+        loss_feat_l2 = (
+            self.criterionFeat_feat(label_feat_map, image_feat.data) * self.opt.l2_feat
+        )
 
         if self.opt.feat_gan:
             # Fake Detection and Loss
-            pred_fake_pool = self.discriminate(label_feat.detach(), label_feat_map, use_pool=True)
+            pred_fake_pool = self.discriminate(
+                label_feat.detach(), label_feat_map, use_pool=True
+            )
             loss_D_fake = self.criterionGAN(pred_fake_pool, False)
 
             # Real Detection and Loss
@@ -279,7 +358,9 @@ class Pix2PixHDModel_Mapping(BaseModel):
             loss_D_real = self.criterionGAN(pred_real, True)
 
             # GAN loss (Fake Passability Loss)
-            pred_fake = self.netD.forward(torch.cat((label_feat.detach(), label_feat_map), dim=1))
+            pred_fake = self.netD.forward(
+                torch.cat((label_feat.detach(), label_feat_map), dim=1)
+            )
             loss_G_GAN = self.criterionGAN(pred_fake, True)
         else:
             # Fake Detection and Loss
@@ -303,8 +384,11 @@ class Pix2PixHDModel_Mapping(BaseModel):
             feat_weights = 4.0 / (self.opt.n_layers_D + 1)
             D_weights = 1.0 / self.opt.num_D
             for i in range(self.opt.num_D):
-                for j in range(len(pred_fake[i])-1):
-                    tmp = self.criterionFeat(pred_fake[i][j], pred_real[i][j].detach()) * self.opt.lambda_feat
+                for j in range(len(pred_fake[i]) - 1):
+                    tmp = (
+                        self.criterionFeat(pred_fake[i][j], pred_real[i][j].detach())
+                        * self.opt.lambda_feat
+                    )
                     loss_G_GAN_Feat += D_weights * feat_weights * tmp
         else:
             loss_G_GAN_Feat = torch.zeros(1).to(label.device)
@@ -312,15 +396,31 @@ class Pix2PixHDModel_Mapping(BaseModel):
         # VGG feature matching loss
         loss_G_VGG = 0
         if not self.opt.no_vgg_loss:
-            loss_G_VGG = self.criterionVGG(fake_image, real_image) * self.opt.lambda_feat if pair else torch.zeros(1).to(label.device)
+            loss_G_VGG = (
+                self.criterionVGG(fake_image, real_image) * self.opt.lambda_feat
+                if pair
+                else torch.zeros(1).to(label.device)
+            )
 
-        smooth_l1_loss=0
+        smooth_l1_loss = 0
         if self.opt.Smooth_L1:
-            smooth_l1_loss=self.criterionImage(fake_image,real_image)*self.opt.L1_weight
+            smooth_l1_loss = (
+                self.criterionImage(fake_image, real_image) * self.opt.L1_weight
+            )
 
-
-        return [ self.loss_filter(loss_feat_l2, loss_G_GAN, loss_G_GAN_Feat, loss_G_VGG, loss_D_real, loss_D_fake,smooth_l1_loss,loss_feat_l2_stage_1), None if not infer else fake_image ]
-
+        return [
+            self.loss_filter(
+                loss_feat_l2,
+                loss_G_GAN,
+                loss_G_GAN_Feat,
+                loss_G_VGG,
+                loss_D_real,
+                loss_D_fake,
+                smooth_l1_loss,
+                loss_feat_l2_stage_1,
+            ),
+            None if not infer else fake_image,
+        ]
 
     def inference(self, label, inst):
 
@@ -336,7 +436,9 @@ class Pix2PixHDModel_Mapping(BaseModel):
 
         if self.opt.NL_use_mask:
             if self.opt.inference_optimize:
-                label_feat_map=self.mapping_net.inference_forward(label_feat.detach(),inst_data)
+                label_feat_map = self.mapping_net.inference_forward(
+                    label_feat.detach(), inst_data
+                )
             else:
                 label_feat_map = self.mapping_net(label_feat.detach(), inst_data)
         else:
@@ -349,4 +451,3 @@ class Pix2PixHDModel_Mapping(BaseModel):
 class InferenceModel(Pix2PixHDModel_Mapping):
     def forward(self, label, inst):
         return self.inference(label, inst)
-

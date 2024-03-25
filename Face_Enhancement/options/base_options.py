@@ -1,14 +1,13 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
+# Copyright (c) Microsoft Corporation
 
-import sys
 import argparse
-import os
-from ..util import util
-import torch
-from .. import models
-from .. import data
 import pickle
+import torch
+import sys
+import os
+
+from ..util import util
+from .. import models
 
 
 class BaseOptions:
@@ -25,12 +24,20 @@ class BaseOptions:
         )
 
         parser.add_argument(
-            "--gpu_ids", type=str, default="0", help="gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU"
+            "--gpu_ids",
+            type=str,
+            default="0",
+            help="gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU",
         )
         parser.add_argument(
-            "--checkpoints_dir", type=str, default="./checkpoints", help="models are saved here"
+            "--checkpoints_dir",
+            type=str,
+            default="./checkpoints",
+            help="models are saved here",
         )
-        parser.add_argument("--model", type=str, default="pix2pix", help="which model to use")
+        parser.add_argument(
+            "--model", type=str, default="pix2pix", help="which model to use"
+        )
         parser.add_argument(
             "--norm_G",
             type=str,
@@ -49,7 +56,9 @@ class BaseOptions:
             default="spectralinstance",
             help="instance normalization or batch normalization",
         )
-        parser.add_argument("--phase", type=str, default="train", help="train, val, test, etc")
+        parser.add_argument(
+            "--phase", type=str, default="train", help="train, val, test, etc"
+        )
 
         # input/output sizes
         parser.add_argument("--batchSize", type=int, default=1, help="input batch size")
@@ -99,7 +108,9 @@ class BaseOptions:
             action="store_true",
             help="if the label map contains dontcare label (dontcare=255)",
         )
-        parser.add_argument("--output_nc", type=int, default=3, help="# of output image channels")
+        parser.add_argument(
+            "--output_nc", type=int, default=3, help="# of output image channels"
+        )
 
         # for setting inputs
         parser.add_argument("--dataroot", type=str, default="./datasets/cityscapes/")
@@ -114,7 +125,9 @@ class BaseOptions:
             action="store_true",
             help="if specified, do not flip the images for data argumentation",
         )
-        parser.add_argument("--nThreads", default=0, type=int, help="# threads for loading data")
+        parser.add_argument(
+            "--nThreads", default=0, type=int, help="# threads for loading data"
+        )
         parser.add_argument(
             "--max_dataset_size",
             type=int,
@@ -132,17 +145,26 @@ class BaseOptions:
             help="saves the current filelist into a text file, so that it loads faster",
         )
         parser.add_argument(
-            "--cache_filelist_read", action="store_true", help="reads from the file list cache"
+            "--cache_filelist_read",
+            action="store_true",
+            help="reads from the file list cache",
         )
 
         # for displays
-        parser.add_argument("--display_winsize", type=int, default=400, help="display window size")
+        parser.add_argument(
+            "--display_winsize", type=int, default=400, help="display window size"
+        )
 
         # for generator
         parser.add_argument(
-            "--netG", type=str, default="spade", help="selects model to use for netG (pix2pixhd | spade)"
+            "--netG",
+            type=str,
+            default="spade",
+            help="selects model to use for netG (pix2pixhd | spade)",
         )
-        parser.add_argument("--ngf", type=int, default=64, help="# of gen filters in first conv layer")
+        parser.add_argument(
+            "--ngf", type=int, default=64, help="# of gen filters in first conv layer"
+        )
         parser.add_argument(
             "--init_type",
             type=str,
@@ -150,31 +172,55 @@ class BaseOptions:
             help="network initialization [normal|xavier|kaiming|orthogonal]",
         )
         parser.add_argument(
-            "--init_variance", type=float, default=0.02, help="variance of the initialization distribution"
+            "--init_variance",
+            type=float,
+            default=0.02,
+            help="variance of the initialization distribution",
         )
-        parser.add_argument("--z_dim", type=int, default=256, help="dimension of the latent z vector")
         parser.add_argument(
-            "--no_parsing_map", action="store_true", help="During training, we do not use the parsing map"
+            "--z_dim", type=int, default=256, help="dimension of the latent z vector"
+        )
+        parser.add_argument(
+            "--no_parsing_map",
+            action="store_true",
+            help="During training, we do not use the parsing map",
         )
 
         # for instance-wise features
         parser.add_argument(
-            "--no_instance", action="store_true", help="if specified, do *not* add instance map as input"
+            "--no_instance",
+            action="store_true",
+            help="if specified, do *not* add instance map as input",
         )
         parser.add_argument(
-            "--nef", type=int, default=16, help="# of encoder filters in the first conv layer"
+            "--nef",
+            type=int,
+            default=16,
+            help="# of encoder filters in the first conv layer",
         )
-        parser.add_argument("--use_vae", action="store_true", help="enable training with an image encoder.")
         parser.add_argument(
-            "--tensorboard_log", action="store_true", help="use tensorboard to record the resutls"
+            "--use_vae",
+            action="store_true",
+            help="enable training with an image encoder.",
+        )
+        parser.add_argument(
+            "--tensorboard_log",
+            action="store_true",
+            help="use tensorboard to record the resutls",
         )
 
         # parser.add_argument('--img_dir',)
         parser.add_argument(
-            "--old_face_folder", type=str, default="", help="The folder name of input old face"
+            "--old_face_folder",
+            type=str,
+            default="",
+            help="The folder name of input old face",
         )
         parser.add_argument(
-            "--old_face_label_folder", type=str, default="", help="The folder name of input old face label"
+            "--old_face_label_folder",
+            type=str,
+            default="",
+            help="The folder name of input old face label",
         )
 
         parser.add_argument("--injection_layer", type=str, default="all", help="")
@@ -185,7 +231,9 @@ class BaseOptions:
     def gather_options(self):
         # initialize parser with basic options
         if not self.initialized:
-            parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+            parser = argparse.ArgumentParser(
+                formatter_class=argparse.ArgumentDefaultsHelpFormatter
+            )
             parser = self.initialize(parser)
 
         # get the basic options
@@ -208,7 +256,7 @@ class BaseOptions:
         if opt.load_from_opt_file:
             parser = self.update_options_from_file(parser, opt)
 
-        opt = parser.parse_args()
+        opt, unknown = parser.parse_known_args()
         self.parser = parser
         return opt
 
@@ -257,7 +305,7 @@ class BaseOptions:
         new_opt = pickle.load(open(file_name + ".pkl", "rb"))
         return new_opt
 
-    def parse(self, save=False):
+    def parse(self):
 
         opt = self.gather_options()
         opt.isTrain = self.isTrain  # train or test
@@ -270,7 +318,9 @@ class BaseOptions:
         # Set semantic_nc based on the option.
         # This will be convenient in many places
         opt.semantic_nc = (
-            opt.label_nc + (1 if opt.contain_dontcare_label else 0) + (0 if opt.no_instance else 1)
+            opt.label_nc
+            + (1 if opt.contain_dontcare_label else 0)
+            + (0 if opt.no_instance else 1)
         )
 
         str_ids = opt.gpu_ids.split(",")
@@ -286,10 +336,10 @@ class BaseOptions:
                 try:
                     torch.cuda.set_device(opt.gpu_ids[0])
                 except:
-                    print('Failed to set GPU device. Using CPU...')
+                    print("Failed to set GPU device. Using CPU...")
 
             else:
-                print('Invalid GPU ID. Using CPU...')
+                print("Invalid GPU ID. Using CPU...")
 
         # assert (len(opt.gpu_ids) == 0 or opt.batchSize % len(opt.gpu_ids) == 0), "Batch size %d is wrong. It must be a multiple of # GPUs %d." % (opt.batchSize, len(opt.gpu_ids))
 

@@ -1,9 +1,8 @@
 # Junks
-__pycache__/
+__pycache__
 *.pyc
 *~
 
 # Models
-*shape_predictor_68_face_landmarks.dat
-Face_Enhancement/checkpoints/*
-Global/checkpoints/*
+*landmarks.dat
+*/checkpoints/*
