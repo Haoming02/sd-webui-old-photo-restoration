@@ -6,7 +6,7 @@ from Face_Detection.detect_all_dlib_HR import detect_hr
 # from Face_Detection.align_warp_back_multiple_dlib import align_warp
 # from Face_Detection.align_warp_back_multiple_dlib_HR import align_warp_hr
 
-# from Face_Enhancement.test_face import test_face
+from Face_Enhancement.test_face import test_face
 
 from modules import scripts
 from PIL import Image
@@ -76,63 +76,37 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         print("Processing is done. Please check the results.")
         return stage1_output
 
-    raise NotImplementedError
-
     # ===== Stage 3 =====
     print("Running Stage 3: Face Enhancement")
-    stage_3_input_face = stage2_output
-    stage_3_output_dir = os.path.join(output_path, "stage3")
 
     if hr:
-        args = [
-            "--checkpoints_dir",
-            FACE_CHECKPOINTS_FOLDER,
-            "--old_face_folder",
-            stage_3_input_face,
-            "--name",
-            FACE_ENHANCEMENT_CHECKPOINTS[1],
-            "--gpu_ids",
-            str(gpu_id),
-            "--load_size",
-            "512",
-            "--label_nc",
-            "18",
-            "--no_instance",
-            "--preprocess_mode",
-            "resize",
-            "--batchSize",
-            "1",
-            "--results_dir",
-            stage_3_output_dir,
-            "--no_parsing_map",
-        ]
+        args = {
+            "checkpoints_dir": FACE_CHECKPOINTS_FOLDER,
+            "name": FACE_ENHANCEMENT_CHECKPOINTS[1],
+            "gpu_ids": str(GPU_ID),
+            "load_size": 512,
+            "label_nc": 18,
+            "no_instance": True,
+            "preprocess_mode": "resize",
+            "batchSize": 1,
+            "no_parsing_map": True,
+        }
+
     else:
-        args = [
-            "--checkpoints_dir",
-            FACE_CHECKPOINTS_FOLDER,
-            "--old_face_folder",
-            stage_3_input_face,
-            "--name",
-            FACE_ENHANCEMENT_CHECKPOINTS[0],
-            "--gpu_ids",
-            str(gpu_id),
-            "--load_size",
-            "256",
-            "--label_nc",
-            "18",
-            "--no_instance",
-            "--preprocess_mode",
-            "resize",
-            "--batchSize",
-            "4",
-            "--results_dir",
-            stage_3_output_dir,
-            "--no_parsing_map",
-        ]
+        args = {
+            "checkpoints_dir": FACE_CHECKPOINTS_FOLDER,
+            "name": FACE_ENHANCEMENT_CHECKPOINTS[0],
+            "gpu_ids": str(GPU_ID),
+            "load_size": 256,
+            "label_nc": 18,
+            "no_instance": True,
+            "preprocess_mode": "resize",
+            "batchSize": 4,
+            "no_parsing_map": True,
+        }
 
-    test_face(args)
-
-    stage3_results = os.path.join(stage_3_output_dir, "each_img")
+    restored_faces = test_face(faces, args)
+    return restored_faces[0]
 
     # ===== Stage 4 =====
     print("Running Stage 4: Blending")

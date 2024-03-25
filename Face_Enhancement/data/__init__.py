@@ -1,17 +1,18 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
+# Copyright (c) Microsoft Corporation
 
-import importlib
 import torch.utils.data
-from .base_dataset import BaseDataset
 from .face_dataset import FaceTestDataset
 
 
-def create_dataloader(opt):
+def create_dataloader(opt, faces: list):
 
     instance = FaceTestDataset()
-    instance.initialize(opt)
-    print("dataset [%s] of size %d was created" % (type(instance).__name__, len(instance)))
+    instance.initialize(opt, faces)
+
+    print(
+        f"Dataset [{type(instance).__name__}] with {len(instance)} faces was created..."
+    )
+
     dataloader = torch.utils.data.DataLoader(
         instance,
         batch_size=opt.batchSize,
@@ -19,4 +20,5 @@ def create_dataloader(opt):
         num_workers=int(opt.nThreads),
         drop_last=opt.isTrain,
     )
+
     return dataloader

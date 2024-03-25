@@ -148,6 +148,6 @@ def detect(input_image: Image) -> list:
         )
 
         aligned_face = warp(image, affine, output_shape=(256, 256, 3))
-        detected_faces.append(img_as_ubyte(aligned_face))
+        detected_faces.append(Image.fromarray(img_as_ubyte(aligned_face)))
 
     return detected_faces
