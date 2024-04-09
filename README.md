@@ -12,7 +12,7 @@ This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1
 > Original Repo: https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life *(includes some example images)*
 
 ## Requirements
-0. Install this extension
+0. Install this Extension[*](#extension-not-showing-up)
 1. Download `global_checkpoints.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
 2. Extract and put the `checkpoints` **folder** *(not just the files)* into `~webui/extensions/sd-webui-old-photo-restoration/Global`
 3. Download `face_checkpoints.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
@@ -23,6 +23,13 @@ This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1
 > The [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases) page includes the original links, as well as the backups mirrored by myself
 
 > Another mirror: [Google Drive](https://drive.google.com/drive/folders/1CXAgAYQzz_JkMmxqcabvgGhG_msyMkyS)
+
+## Extension not Showing Up
+If after installing the Extension, nothing shows up in the **Extras** tab, it's usually caused by failing to install the `dlib` package. To solve it:
+
+- Install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/) with
+    - [**C++**](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170) component
+    - [**CMake**](https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170) component
 
 ## How to Use
 After installing this Extension, there will be an **Old Photo Restoration** section in the **Extras** tab
