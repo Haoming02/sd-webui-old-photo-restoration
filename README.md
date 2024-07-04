@@ -27,7 +27,26 @@ This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1
 ## Extension not Showing Up
 If after installing the Extension, nothing shows up in the **Extras** tab, it's usually caused by failing to install the `dlib` package. To solve it:
 
-- Install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/community/) with
+#### Linux
+From my brief searching, you need to install `cmake` first, then try installing `dlib` again
+
+```bash
+pip install dlib
+```
+or
+```bash
+sudo apt-get install cmake
+```
+
+#### Windows
+
+<ins><b>Easier</b> Way</ins>
+
+- Install the pre-built package from: https://github.com/z-mahmud22/Dlib_Windows_Python3.x
+
+<ins><b>Intended</b> Way</ins>
+
+- Install [Visual Studio](https://visualstudio.microsoft.com/vs/community/) with
     - [**C++**](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170) component
     - [**CMake**](https://learn.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=msvc-170) component
 

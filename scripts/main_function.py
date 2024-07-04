@@ -22,11 +22,15 @@ FACE_CHECKPOINTS_FOLDER = os.path.join(
 )
 FACE_ENHANCEMENT_CHECKPOINTS = ("Setting_9_epoch_100", "FaceSR_512")
 
-GPU_ID = 0 if torch.cuda.is_available() else -1
 
-
-def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
+def main(
+    input_image: Image, scratch: bool, hr: bool, face_res: bool, use_cpu: bool
+) -> Image:
     input_image = input_image.convert("RGB")
+
+    gpu_id = 0
+    if not torch.cuda.is_available() or use_cpu:
+        gpu_id = -1
 
     # ===== Stage 1 =====
     print("\nRunning Stage 1: Overall restoration")
@@ -36,18 +40,18 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
             "Full",
             "--Quality_restore",
             "--gpu_ids",
-            str(GPU_ID),
+            str(gpu_id),
         ]
 
         stage1_output = global_test(GLOBAL_CHECKPOINTS_FOLDER, args, input_image)
 
     else:
-        mask, transformed_image = global_detection(input_image, GPU_ID, "full_size")
+        mask, transformed_image = global_detection(input_image, gpu_id, "full_size")
 
         args = [
             "--Scratch_and_Quality_restore",
             "--gpu_ids",
-            str(GPU_ID),
+            str(gpu_id),
         ]
 
         if hr:
@@ -86,7 +90,7 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         args = {
             "checkpoints_dir": FACE_CHECKPOINTS_FOLDER,
             "name": FACE_ENHANCEMENT_CHECKPOINTS[1],
-            "gpu_ids": str(GPU_ID),
+            "gpu_ids": str(gpu_id),
             "load_size": 512,
             "label_nc": 18,
             "no_instance": True,
@@ -99,7 +103,7 @@ def main(input_image: Image, scratch: bool, hr: bool, face_res: bool) -> Image:
         args = {
             "checkpoints_dir": FACE_CHECKPOINTS_FOLDER,
             "name": FACE_ENHANCEMENT_CHECKPOINTS[0],
-            "gpu_ids": str(GPU_ID),
+            "gpu_ids": str(gpu_id),
             "load_size": 256,
             "label_nc": 18,
             "no_instance": True,

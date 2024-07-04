@@ -22,7 +22,10 @@ class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
             with gr.Row():
                 do_scratch = gr.Checkbox(label="Process Scratch")
                 do_face_res = gr.Checkbox(label="Face Restore")
+
+            with gr.Row():
                 is_hr = gr.Checkbox(label="High Resolution")
+                use_cpu = gr.Checkbox(True, label="Use CPU")
 
         args = {
             "enable": enable,
@@ -30,6 +33,7 @@ class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
             "do_scratch": do_scratch,
             "do_face_res": do_face_res,
             "is_hr": is_hr,
+            "use_cpu": use_cpu,
         }
 
         return args
@@ -41,9 +45,10 @@ class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
             do_scratch: bool = args["do_scratch"]
             do_face_res: bool = args["do_face_res"]
             is_hr: bool = args["is_hr"]
+            use_cpu: bool = args["use_cpu"]
 
             img = pp.image
-            pp.image = main(img, do_scratch, is_hr, do_face_res)
+            pp.image = main(img, do_scratch, is_hr, do_face_res, use_cpu)
 
     def process(self, pp: scripts_postprocessing.PostprocessedImage, **args):
 
@@ -52,6 +57,7 @@ class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
             do_scratch: bool = args["do_scratch"]
             do_face_res: bool = args["do_face_res"]
             is_hr: bool = args["is_hr"]
+            use_cpu: bool = args["use_cpu"]
 
             img = pp.image
-            pp.image = main(img, do_scratch, is_hr, do_face_res)
+            pp.image = main(img, do_scratch, is_hr, do_face_res, use_cpu)
