@@ -1,11 +1,5 @@
 import os
 
-try:
-    import dlib
-except ModuleNotFoundError:
-    print('\n[Old Photo Restoration] Failed to import "dlib" package...')
-    print('Please refer to the "Extension not Showing Up" section on the repo...\n')
-
 EXTENSION_FOLDER = os.path.dirname(os.path.realpath(__file__))
 
 FACE = os.path.join(EXTENSION_FOLDER, "Face_Enhancement", "checkpoints")

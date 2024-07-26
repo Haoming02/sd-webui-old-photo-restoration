@@ -1,4 +1,3 @@
-dlib
 scikit-image
 easydict
 PyYAML
