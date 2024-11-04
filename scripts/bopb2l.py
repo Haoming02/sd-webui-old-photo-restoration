@@ -1,7 +1,8 @@
-from modules import scripts_postprocessing, ui_components
+from modules.ui_components import InputAccordion
+from modules import scripts_postprocessing
 import gradio as gr
 
-from scripts.main_function import main
+from scripts.bopb2l_main import main
 
 
 class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
@@ -9,22 +10,18 @@ class OldPhotoRestoration(scripts_postprocessing.ScriptPostprocessing):
     order = 200409484
 
     def ui(self):
-        with ui_components.InputAccordion(
-            False, label="Old Photo Restoration"
-        ) as enable:
-
+        with InputAccordion(False, label="Old Photo Restoration") as enable:
             proc_order = gr.Radio(
-                ["Restoration First", "Upscale First"],
-                label="Processing Order",
+                choices=("Restoration First", "Upscale First"),
                 value="Restoration First",
+                label="Processing Order",
             )
 
             with gr.Row():
-                do_scratch = gr.Checkbox(label="Process Scratch")
-                do_face_res = gr.Checkbox(label="Face Restore")
-
+                do_scratch = gr.Checkbox(False, label="Process Scratch")
+                do_face_res = gr.Checkbox(False, label="Face Restore")
             with gr.Row():
-                is_hr = gr.Checkbox(label="High Resolution")
+                is_hr = gr.Checkbox(False, label="High Resolution")
                 use_cpu = gr.Checkbox(True, label="Use CPU")
 
         args = {

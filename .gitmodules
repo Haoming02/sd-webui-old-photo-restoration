@@ -1,0 +1,3 @@
+[submodule "lib_bopb2l"]
+	path = lib_bopb2l
+	url = https://github.com/Haoming02/BOP-B2L-Backend

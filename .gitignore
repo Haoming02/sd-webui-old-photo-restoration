@@ -1,8 +1,1 @@
-# Junks
 __pycache__
-*.pyc
-*~
-
-# Models
-*landmarks.dat
-*/checkpoints/*

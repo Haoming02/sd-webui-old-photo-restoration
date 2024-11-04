@@ -5,12 +5,12 @@ from modules.api import api
 from fastapi import FastAPI, Body
 import gradio as gr
 
-from scripts.main_function import main
+from scripts.bopb2l_main import main
 
 
 def bop_api(_: gr.Blocks, app: FastAPI):
 
-    @app.post("/bop")
+    @app.post("/bopb2l/restore")
     async def old_photo_restoration(
         image: str = Body("", title="input image"),
         scratch: bool = Body(False, title="process scratch"),
@@ -22,9 +22,7 @@ def bop_api(_: gr.Blocks, app: FastAPI):
             return
 
         input_image = api.decode_base64_to_image(image)
-
         img = main(input_image, scratch, hr, face_res, cpu)
-
         return {"image": api.encode_pil_to_base64(img).decode("utf-8")}
 
 

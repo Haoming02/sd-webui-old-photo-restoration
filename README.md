@@ -14,11 +14,11 @@ This is an Extension for the [Automatic1111 Webui](https://github.com/AUTOMATIC1
 ## Requirements
 0. Install this Extension
 1. Download `global_checkpoints.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
-2. Extract and put the `checkpoints` **folder** *(not just the files)* into `~webui/extensions/sd-webui-old-photo-restoration/Global`
+2. Extract and put the `checkpoints` **folder** *(not just the files)* into `~webui/extensions/sd-webui-old-photo-restoration/lib_bopb2l/Global`
 3. Download `face_checkpoints.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
-4. Extract and put the `checkpoints` **folder** *(not just the files)* into `~webui/extensions/sd-webui-old-photo-restoration/Face_Enhancement`
+4. Extract and put the `checkpoints` **folder** *(not just the files)* into `~webui/extensions/sd-webui-old-photo-restoration/lib_bopb2l/Face_Enhancement`
 5. Download `shape_predictor_68_face_landmarks.zip` from [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases)
-6. Extract the `.dat` **file** into `~webui/extensions/sd-webui-old-photo-restoration/Face_Detection`
+6. Extract the `.dat` **file** into `~webui/extensions/sd-webui-old-photo-restoration/lib_bopb2l/Face_Detection`
 
 > The [Releases](https://github.com/Haoming02/sd-webui-old-photo-restoration/releases) page includes the original links, as well as the backups mirrored by myself
 
@@ -40,3 +40,4 @@ After installing this Extension, there will be an **Old Photo Restoration** sect
   - *(This is **different** from the Webui built-in ones)*
 - **High Resolution:** Use higher parameters to do the processing
   - *(Only has an effect when either `Process Scratch` or `Face Restore` is also enabled)*
+- **Use CPU:** Enable this if you do not have a Nvidia GPU or are getting **Out of Memory** Error
