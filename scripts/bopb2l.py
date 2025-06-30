@@ -1,7 +1,7 @@
-from modules.ui_components import InputAccordion
-from modules import scripts_postprocessing
 import gradio as gr
 
+from modules import scripts_postprocessing
+from modules.ui_components import InputAccordion
 from scripts.bopb2l_main import main
 
 

@@ -1,10 +1,9 @@
-from modules.script_callbacks import on_app_started
-from modules.api.models import *
-from modules.api import api
-
-from fastapi import FastAPI, Body
 import gradio as gr
+from fastapi import Body, FastAPI
 
+from modules.api import api
+from modules.api.models import *
+from modules.script_callbacks import on_app_started
 from scripts.bopb2l_main import main
 
 
